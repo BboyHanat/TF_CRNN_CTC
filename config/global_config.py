@@ -84,7 +84,7 @@ __C.VAL = edict()
 
 __C.VAL.VAL_TIMES = 1000
 
-__C.VAL.VAL_STEP = 10000
+__C.VAL.VAL_STEP = 100000
 
 
 # Test options
