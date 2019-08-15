@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import tensorflow as tf
-import time
+import glog as logger
 from os import path as osp
 from tensorflow.contrib import rnn
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.contrib import slim
 from crnn_model.vgg import vgg_a
 
-
+logger.init()
 class ChineseCrnnNet:
     """
         Implement the crnn model for squence recognition
@@ -58,7 +58,7 @@ class ChineseCrnnNet:
         """
         with tf.variable_scope(name_or_scope=name):
             shape = inputdata.get_shape().as_list()
-            print(shape)
+            logger.info(shape)
             assert shape[1] == 1  # H of the feature map must equal to 1
 
             ret = tf.squeeze(inputdata, axis=1, name='squeeze')
@@ -230,7 +230,7 @@ class ChineseCrnnNet:
         else:
             raise NotImplementedError('Other accuracy compute mode has not been implemented')
         if display:
-            print('Mean accuracy is {:5f}'.format(avg_accuracy))
+            logger.info('Mean accuracy is {:5f}'.format(avg_accuracy))
         return avg_accuracy
 
     def load_pretrained_model(self):
@@ -246,9 +246,9 @@ class ChineseCrnnNet:
                 var_to_shape_map = reader.get_variable_to_shape_map()
                 return var_to_shape_map
             except Exception as e:  # pylint: disable=broad-except
-                print(str(e))
+                logger.info(str(e))
                 if "corrupted compressed block contents" in str(e):
-                    print("It's likely that your checkpoint file has been compressed "
+                    logger.info("It's likely that your checkpoint file has been compressed "
                           "with SNAPPY.")
 
         def get_variables_to_restore(variables, var_keep_dic):
@@ -256,15 +256,15 @@ class ChineseCrnnNet:
             for v in variables:
                 # exclude
                 if v.name.split(':')[0] in var_keep_dic:
-                    print('Variables restored: %s' % v.name)
+                    logger.info('Variables restored: %s' % v.name)
                     variables_to_restore.append(v)
                 else:
-                    print('Variables restored: %s' % v.name)
+                    logger.info('Variables restored: %s' % v.name)
             return variables_to_restore
 
         variables = tf.global_variables()
         self.sess.run(tf.variables_initializer(variables, name='init'))
-        print("variables initilized ok")
+        logger.info("variables initilized ok")
         # Get dictionary of model variable
         if self.pretrained_model is not None:
             var_keep_dic = get_variables_in_checkpoint_file(self.pretrained_model)
@@ -337,12 +337,12 @@ class ChineseCrnnNet:
                     # train part
                     if need_decode:
                         train_ctc_loss_value, decoded_train_predictions, merge_summary = self.sess.run([loss, decode, merge_summary_op], train_feed_dict)
-                        print('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
+                        logger.info('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
                         str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decoded_train_predictions[0])
-                        print("decoded string list is :", str_lists)
+                        logger.info("decoded string list is :", str_lists)
                     else:
                         train_ctc_loss_value, merge_summary = self.sess.run([loss, merge_summary_op], train_feed_dict)
-                        print('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
+                        logger.info('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
 
                     if step % val_step == 0 and step >= val_step:
                         accuary_per_char_list = []
@@ -355,7 +355,7 @@ class ChineseCrnnNet:
                             accuary_full_sequence_list.append(self.compute_accuracy(val_seq_labels, decoded_train_predictions[0], mode='full_sequence'))
                         accuary_per_char = np.mean(np.asarray(accuary_per_char_list))
                         accuary_full_sequence = np.mean(np.asarray(accuary_full_sequence_list))
-                        print('per character accuary {} , full sequence accuary {} \n epoch {} step {} loss {}'.format(str(accuary_per_char),
+                        logger.info('per character accuary {} , full sequence accuary {} \n epoch {} step {} loss {}'.format(str(accuary_per_char),
                                                                                                                        str(accuary_full_sequence),
                                                                                                                        str(epoch),
                                                                                                                        str(step),
