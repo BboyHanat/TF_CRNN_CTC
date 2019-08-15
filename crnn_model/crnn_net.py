@@ -339,7 +339,7 @@ class ChineseCrnnNet:
                         train_ctc_loss_value, decoded_train_predictions, merge_summary = self.sess.run([loss, decode, merge_summary_op], train_feed_dict)
                         logger.info('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
                         str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decoded_train_predictions[0])
-                        logger.info("decoded string list is :", str_lists)
+                        print("decoded string list is :", str_lists)
                     else:
                         train_ctc_loss_value, merge_summary = self.sess.run([loss, merge_summary_op], train_feed_dict)
                         logger.info('epoch {} step {} loss {}'.format(str(epoch), str(step), str(train_ctc_loss_value)))
