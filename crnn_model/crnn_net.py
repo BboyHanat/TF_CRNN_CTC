@@ -7,7 +7,6 @@ from os import path as osp
 from tensorflow.contrib import rnn
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.contrib import slim
-from crnn_model import cnn_basenet
 from crnn_model.vgg import vgg_a
 
 
