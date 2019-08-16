@@ -164,20 +164,20 @@ class ChineseCrnnNet:
         :param labels:
         :return:
         """
-        # learning_rate = tf.train.exponential_decay(
-        #     learning_rate=self.learning_rate,
-        #     global_step=global_step,
-        #     decay_steps=self.lr_decay_steps,
-        #     decay_rate=self.lr_decay_rate,
-        #     staircase=self.lr_staircase)
+        learning_rate = tf.train.exponential_decay(
+            learning_rate=self.learning_rate,
+            global_step=global_step,
+            decay_steps=self.lr_decay_steps,
+            decay_rate=self.lr_decay_rate,
+            staircase=self.lr_staircase)
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         # with tf.control_dependencies(update_ops):
         #     optimizer = tf.train.MomentumOptimizer(
         #         learning_rate=learning_rate, momentum=0.9).minimize(
         #         loss=loss, global_step=global_step)
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss=loss, global_step=global_step)
-
-        return optimizer, self.learning_rate
+        # optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss=loss, global_step=global_step)
+        optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(loss=loss, global_step=global_step)
+        return optimizer, learning_rate
 
     def compute_accuracy(self, ground_truth, decode_sequence, display=False, mode='per_char'):
         """
