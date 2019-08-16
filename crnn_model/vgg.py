@@ -172,7 +172,7 @@ def vgg_16(inputs,
             net = slim.repeat(net, 3, slim.conv2d, 512, [3, 3], scope='conv4')
             net = slim.max_pool2d(net, [2, 1], stride=[2, 1], scope='pool4')
             net = slim.repeat(net, 2, slim.conv2d, 512, [3, 3], scope='conv5')
-            net = slim.conv2d(net,512, [2, 2], stride=[2, 1], scope='ouput_conv')
+            net = slim.conv2d(net, 512, [2, 2], stride=[2, 1], scope='ouput_conv')
             #net = slim.max_pool2d(net, [2, 1], stride=[2, 1], scope='pool5')
 
             return net
