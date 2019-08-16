@@ -138,15 +138,11 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
     生成ocr数据
     1 生成文字ocr图像数据
     2 生成txt文件 内容每一行（*_*.jpg 杭啊哎哦发卷发）
-    3 生成json 文字与编码映射文件
-    4 生成json 对编码做索引
     :param path_chinese_synthetic:
     :param path_img:
     :param path_font:
     :param path_save:
     :param annotation_file:
-    :param char_dict_path:
-    :param ord_map_path:
     :param shuffle_limmit:
     :param shuffle_repeat:
     :param font_size_range:
@@ -154,9 +150,6 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
     """
     fp = open(path_chinese_synthetic, "r")
     chinese_synth = fp.readline()
-    # char_builder = CharDictBuilder()
-    # char_builder.write_char_dict(list(chinese_synth), char_dict_path)
-    # char_builder.map_ord_to_index(list(chinese_synth), ord_map_path)
 
     img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
     font_path = [os.path.join(path_font, font) for font in os.listdir(path_font) if font.split(".")[-1] in font_format and ('.DS' not in font)]
@@ -165,7 +158,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
     epoch = 0
     for f_index, font in enumerate(font_path):
         # fnt_bytes = open(font,'r')
-        for batch_size in range(15, 16):
+        for batch_size in range(10, 11):
             chinese_synth_list = list(chinese_synth)
             random.shuffle(chinese_synth_list)
             character_gen = CharacterGen(chinese_synth_list, batch_size=batch_size)

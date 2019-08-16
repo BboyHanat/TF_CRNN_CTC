@@ -313,7 +313,7 @@ class ChineseCrnnNet:
         global_step = tf.Variable(0, dtype=tf.int32, name='g_step', trainable=False)
         inference_ret = self.inference(name=name, reuse=False)
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
-        loss = self.compute_loss(inference_ret,sql_len, batch_size)
+        loss = self.compute_loss(inference_ret, sql_len, batch_size)
         optimizer, learning_rate = self.graph_optimizer(loss, global_step)
 
         # define tensorflow summary
