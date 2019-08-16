@@ -224,7 +224,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
 if __name__ == "__main__":
     path_chinese_synthetic = "./chinese_127.txt"
     path_img = '/data/User/hanat/data/bg_image'
-    path_font = '/data/User/hanat/CRNN_Tensorflow/data/fonts'
+    path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
     path_save = '../data/train'
     txt_save = '../data/train.txt'
     char_dict_path = '../data/char_dict/char_dict.json'
