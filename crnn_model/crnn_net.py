@@ -7,7 +7,7 @@ from os import path as osp
 from tensorflow.contrib import rnn
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.contrib import slim
-from crnn_model.vgg import vgg_a
+from crnn_model.vgg import vgg_a,vgg_16
 
 logger.init()
 class ChineseCrnnNet:
@@ -114,7 +114,7 @@ class ChineseCrnnNet:
         :return:
         """
         # first apply the cnn feature extraction stage
-        cnn_out = vgg_a(self.input_data)
+        cnn_out = vgg_16(self.input_data)
         with tf.variable_scope(name_or_scope=name, reuse=reuse):
             # second apply the map to sequence stage
             sequence = self._map_to_sequence(
