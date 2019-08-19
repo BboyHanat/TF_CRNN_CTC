@@ -174,6 +174,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
     :param font_size_range:
     :return:
     """
+    os.makedirs(path_save, exist_ok=True)
     fp = open(path_chinese_synthetic, "r")
     chinese_synth = fp.readline()
 
