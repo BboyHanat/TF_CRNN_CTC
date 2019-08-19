@@ -40,7 +40,7 @@ def random_region(image, width_limit=100, height_limit=100):
     x2 = x1 + width_limit
     y2 = y1 + height_limit
     roi = image.crop((x1, y1, x2, y2))
-    roi = Image.new("RGB", (width_limit, height_limit), color=(0, 0, 0))
+    #roi = Image.new("RGB", (width_limit, height_limit), color=(0, 0, 0))
     return roi
 
 
@@ -54,9 +54,9 @@ def get_fontcolor(image):
     b_mean = int(np.mean(image[:, :, 0]))
     g_mean = int(np.mean(image[:, :, 1]))
     r_mean = int(np.mean(image[:, :, 2]))
-    b_range = (0, b_mean - 50) if b_mean > 127 else (b_mean + 50, 255)
-    g_range = (0, g_mean - 50) if g_mean > 127 else (g_mean + 50, 255)
-    r_range = (0, r_mean - 50) if r_mean > 127 else (r_mean + 50, 255)
+    b_range = (0, b_mean - 80) if b_mean > 127 else (b_mean + 80, 255)
+    g_range = (0, g_mean - 80) if g_mean > 127 else (g_mean + 80, 255)
+    r_range = (0, r_mean - 80) if r_mean > 127 else (r_mean + 80, 255)
 
     b = random.randint(b_range[0], b_range[1])
     g = random.randint(g_range[0], g_range[1])
@@ -180,7 +180,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
     img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
     font_path = [os.path.join(path_font, font) for font in os.listdir(path_font) if font.split(".")[-1] in font_format and ('.DS' not in font)]
     font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
-
+    fp.close()
     fp = open(annotation_file, "w")
     epoch = 0
     for f_index, font in enumerate(font_path):
@@ -235,6 +235,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
                                 if os.path.getsize(image_save) > 1:
                                     annotation_info = image_name + "^" + char_list_shuffled + "\n"
                                     fp.write(annotation_info)
+                                    print(annotation_info)
                                 else:
                                     os.remove(image_save)
                     else:
@@ -252,6 +253,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
                             if os.path.getsize(image_save) > 1:
                                 annotation_info = image_name + "^" + char_list + "\n"
                                 fp.write(annotation_info)
+                                print(annotation_info)
                             else:
                                 os.remove(image_save)
                 except:
