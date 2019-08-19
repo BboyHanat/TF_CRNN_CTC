@@ -141,8 +141,8 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
     :param have_yen_path:
     :return:
     """
-    if not os.path.exists(have_yen_path):
-        os.mkdir(have_yen_path)
+    print(have_yen_path)
+    os.makedirs(have_yen_path, exist_ok=True)
     font_path = [os.path.join(src_fonts_path, font) for font in os.listdir(src_fonts_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
     for font in font_path:
         ttf = TTFont('汉仪大黑简.ttf')
@@ -264,4 +264,4 @@ if __name__ == "__main__":
     path_save = '../data/train'
     txt_save = '../data/train.txt'
     copy_have_yen_font(path_font, path_have_yen_path)
-    ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
+    #ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
