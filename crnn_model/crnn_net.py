@@ -386,6 +386,7 @@ class ChineseCrnnNet:
         accuary_full_sequence_list = []
         for j in range(val_times):
             val_seq_data, val_seq_labels = self.sess.run([val_input_data, val_label])
+            print(val_seq_labels)
             val_feed_dict = {self.input_data: val_seq_data, self.labels: val_seq_labels}
             decoded_train_predictions = self.sess.run(decode, val_feed_dict)
             str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decoded_train_predictions[0])

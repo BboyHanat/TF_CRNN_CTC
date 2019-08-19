@@ -74,7 +74,8 @@ def validation_data(dataset_dir, weights_path):
                                   lr_decay_rate=lr_decay_rate,
                                   lr_staircase=lr_staircase
                                   )
-    chinese_crnn.validation(val_images, val_labels,
+    chinese_crnn.validation(val_images,
+                            val_labels,
                             sql_len=seq_len,
                             batch_size=batch_size,
                             val_times=val_times,
