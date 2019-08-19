@@ -381,12 +381,17 @@ class ChineseCrnnNet:
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
         # load pretrained model if the path had been declared
         self.load_pretrained_model()
+
         accuary_per_char_list = []
         accuary_full_sequence_list = []
         for j in range(val_times):
             val_seq_data, val_seq_labels = self.sess.run([val_input_data, val_label])
             val_feed_dict = {self.input_data: val_seq_data, self.labels: val_seq_labels}
             decoded_train_predictions = self.sess.run(decode, val_feed_dict)
+            str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decoded_train_predictions[0])
+            gt_str_lists, gt_number_lists = self.feature_decoder.sparse_tensor_to_str(val_label)
+            print("decoded pred string list is :", str_lists[0])
+            print("decoded gt string list is :", gt_str_lists[0])
             accuary_per_char_list.append(self.compute_accuracy(val_seq_labels, decoded_train_predictions[0]))
             accuary_full_sequence_list.append(self.compute_accuracy(val_seq_labels, decoded_train_predictions[0], mode='full_sequence'))
         accuary_per_char = np.mean(np.asarray(accuary_per_char_list))
