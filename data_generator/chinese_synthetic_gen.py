@@ -145,14 +145,17 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
     os.makedirs(have_yen_path, exist_ok=True)
     font_path = [os.path.join(src_fonts_path, font) for font in os.listdir(src_fonts_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
     for font in font_path:
-        print(font)
-        ttf = TTFont(font)
-        uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
-        rmb = 'yen'
-        name = font.split('/')[-1]
-        if rmb in uni_list:
-            save_path = os.path.join(have_yen_path, name)
-            shutil.copy(font, save_path)
+        try:
+            ttf = TTFont(font)
+            uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+            rmb = 'yen'
+            name = font.split('/')[-1]
+            if rmb in uni_list:
+                save_path = os.path.join(have_yen_path, name)
+                shutil.copy(font, save_path)
+        except Exception as e:
+            print(font, e)
+            continue
 
 
 
