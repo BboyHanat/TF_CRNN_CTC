@@ -16,6 +16,7 @@ import shutil
 import os
 from PIL import Image, ImageDraw, ImageFont
 from local_utils.establish_char_dict import *
+from fontTools.fontBuilder import TTFont
 
 img_format = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
 font_format = ["ttf", 'eot', 'fon', 'font', 'woff', 'woff2', 'otf', 'ttc', 'TTF', 'TTC', 'OTF', 'EOT', 'FONT', 'FON', 'WOFF', 'WOFF2']
@@ -133,7 +134,28 @@ class CharacterGen:
             seek += self.batch_size
 
 
-def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, annotation_file, char_dict_path, ord_map_path, shuffle_limmit=5, shuffle_repeat=5, font_size_range=(30, 100)):
+def copy_have_yen_font(src_fonts_path, have_yen_path):
+    """
+    copy have yen font to have_yen_path
+    :param src_fonts_path:
+    :param have_yen_path:
+    :return:
+    """
+    if not os.path.exists(have_yen_path):
+        os.mkdir(have_yen_path)
+    font_path = [os.path.join(src_fonts_path, font) for font in os.listdir(src_fonts_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+    for font in font_path:
+        ttf = TTFont('汉仪大黑简.ttf')
+        uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+        rmb = 'yen'
+        name = font.split('/')[-1]
+        if rmb in uni_list:
+            save_path = os.path.join(have_yen_path, name)
+            shutil.copy(font, save_path)
+
+
+
+def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, annotation_file, shuffle_limmit=5, shuffle_repeat=15, font_size_range=(30, 100)):
     """
     生成ocr数据
     1 生成文字ocr图像数据
@@ -153,6 +175,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
 
     img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
     font_path = [os.path.join(path_font, font) for font in os.listdir(path_font) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+    font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
 
     fp = open(annotation_file, "w")
     epoch = 0
@@ -177,7 +200,19 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, anno
                         continue
                 font_size = random.randint(font_size_range[0], font_size_range[1])
                 try:
-                    fnt = ImageFont.truetype(font, font_size)
+                    if '¥' in char_list:
+                        ttf = TTFont(font)
+                        uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+                        rmb = u'yen'
+                        print(rmb)
+                        if rmb in uni_list:
+                            fnt = ImageFont.truetype(font, font_size)
+                        else:
+                            font_have_yen = random.randint(0, len(font_have_yen_path)-1)
+                            font = font_have_yen_path[font_have_yen]
+                            fnt = ImageFont.truetype(font, font_size)
+                    else:
+                        fnt = ImageFont.truetype(font, font_size)
 
                     if len(char_list) > shuffle_limmit:
                         for shuffle_times in range(shuffle_repeat):
@@ -225,8 +260,8 @@ if __name__ == "__main__":
     path_chinese_synthetic = "./chinese_127.txt"
     path_img = '/data/User/hanat/data/bg_image'
     path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
+    path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
     path_save = '../data/train'
     txt_save = '../data/train.txt'
-    char_dict_path = '../data/char_dict/char_dict.json'
-    ord_map_path = '../data/char_dict/ord_map.json'
-    ocr_data_create(path_chinese_synthetic, path_img, path_font, path_save, txt_save, char_dict_path, ord_map_path)
+    copy_have_yen_font(path_font, path_have_yen_path)
+    ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
