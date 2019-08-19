@@ -379,6 +379,8 @@ class ChineseCrnnNet:
                    name):
         inference_ret = self.inference(name=name, reuse=False)
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
+        # load pretrained model if the path had been declared
+        self.load_pretrained_model()
         accuary_per_char_list = []
         accuary_full_sequence_list = []
         for j in range(val_times):
