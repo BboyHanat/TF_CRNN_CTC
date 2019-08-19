@@ -257,7 +257,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
 
 
 if __name__ == "__main__":
-    path_chinese_synthetic = "./chinese_127.txt"
+    path_chinese_synthetic = "./chinese_synthetic.txt"
     path_img = '/data/User/hanat/data/bg_image'
     path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
     path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
