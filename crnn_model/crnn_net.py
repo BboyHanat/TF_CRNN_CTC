@@ -7,9 +7,11 @@ from os import path as osp
 from tensorflow.contrib import rnn
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.contrib import slim
-from crnn_model.vgg import vgg_a,vgg_16
+from crnn_model.vgg import vgg_a, vgg_16
 
 logger.init()
+
+
 class ChineseCrnnNet:
     """
         Implement the crnn model for squence recognition
@@ -99,7 +101,7 @@ class ChineseCrnnNet:
             # # )
             # # Doing the affine projection
             # logits = tf.matmul(rnn_reshaped, w, name='logits')
-            #logits = tf.reshape(logits, [shape[0], shape[1], self._num_classes], name='logits_reshape')
+            # logits = tf.reshape(logits, [shape[0], shape[1], self._num_classes], name='logits_reshape')
             raw_pred = tf.argmax(tf.nn.softmax(logits), axis=2, name='raw_prediction')
             # Swap batch and batch axis
             rnn_out = tf.transpose(logits, [1, 0, 2], name='transpose_time_major')  # [width, batch, n_classes]
@@ -249,7 +251,7 @@ class ChineseCrnnNet:
                 logger.info(str(e))
                 if "corrupted compressed block contents" in str(e):
                     logger.info("It's likely that your checkpoint file has been compressed "
-                          "with SNAPPY.")
+                                "with SNAPPY.")
 
         def get_variables_to_restore(variables, var_keep_dic):
             variables_to_restore = []
@@ -359,14 +361,32 @@ class ChineseCrnnNet:
                         accuary_per_char = np.mean(np.asarray(accuary_per_char_list))
                         accuary_full_sequence = np.mean(np.asarray(accuary_full_sequence_list))
                         logger.info('per character accuary {} , full sequence accuary {} \n epoch {} step {} loss {}'.format(str(accuary_per_char),
-                                                                                                                       str(accuary_full_sequence),
-                                                                                                                       str(epoch),
-                                                                                                                       str(step),
-                                                                                                                       str(train_ctc_loss_value)))
+                                                                                                                             str(accuary_full_sequence),
+                                                                                                                             str(epoch),
+                                                                                                                             str(step),
+                                                                                                                             str(train_ctc_loss_value)))
             epoch += 1
             model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
             model_save_path = osp.join(model_save_dir, model_name)
             saver.save(sess=self.sess, save_path=model_save_path)
 
-    def forward(self):
-        pass
+    def validation(self,
+                   val_input_data,
+                   val_label,
+                   sql_len,
+                   batch_size,
+                   val_times,
+                   name):
+        inference_ret = self.inference(name=name, reuse=False)
+        decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
+        accuary_per_char_list = []
+        accuary_full_sequence_list = []
+        for j in range(val_times):
+            val_seq_data, val_seq_labels = self.sess.run([val_input_data, val_label])
+            val_feed_dict = {self.input_data: val_seq_data, self.labels: val_seq_labels}
+            decoded_train_predictions = self.sess.run(decode, val_feed_dict)
+            accuary_per_char_list.append(self.compute_accuracy(val_seq_labels, decoded_train_predictions[0]))
+            accuary_full_sequence_list.append(self.compute_accuracy(val_seq_labels, decoded_train_predictions[0], mode='full_sequence'))
+        accuary_per_char = np.mean(np.asarray(accuary_per_char_list))
+        accuary_full_sequence = np.mean(np.asarray(accuary_full_sequence_list))
+        logger.info('per character accuary {} , full sequence accuary {}'.format(str(accuary_per_char), str(accuary_full_sequence)))
