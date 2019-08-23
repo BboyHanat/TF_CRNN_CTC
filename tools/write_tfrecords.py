@@ -41,7 +41,7 @@ def write_tfrecords(dataset_dir, save_dir):
     # test crnn data producer
     producer = shadownet_data_feed_pipline.CrnnDataProducer(
         dataset_dir=dataset_dir,
-        writer_process_nums=1
+        writer_process_nums=4
     )
 
     producer.generate_tfrecords(

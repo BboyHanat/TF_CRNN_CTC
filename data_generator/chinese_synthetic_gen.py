@@ -17,6 +17,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 from local_utils.establish_char_dict import *
 from fontTools.fontBuilder import TTFont
+import glog as logger
 
 img_format = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
 font_format = ["ttf", 'eot', 'fon', 'font', 'woff', 'woff2', 'otf', 'ttc', 'TTF', 'TTC', 'OTF', 'EOT', 'FONT', 'FON', 'WOFF', 'WOFF2']
@@ -50,18 +51,23 @@ def get_fontcolor(image):
     :param image:
     :return:
     """
+    # image_pil = Image.fromarray(image)
+    # image_pil.show()
     image = np.asarray(image)
-    b_mean = int(np.mean(image[:, :, 0]))
-    g_mean = int(np.mean(image[:, :, 1]))
-    r_mean = int(np.mean(image[:, :, 2]))
-    b_range = (0, b_mean - 80) if b_mean > 127 else (b_mean + 80, 255)
-    g_range = (0, g_mean - 80) if g_mean > 127 else (g_mean + 80, 255)
-    r_range = (0, r_mean - 80) if r_mean > 127 else (r_mean + 80, 255)
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV_FULL)
+    h_mean = int(np.mean(image_hsv[:, :, 0]))
+    s_mean = int(np.mean(image_hsv[:, :, 1]))
+    v_mean = int(np.mean(image_hsv[:, :, 2]))
 
-    b = random.randint(b_range[0], b_range[1])
-    g = random.randint(g_range[0], g_range[1])
-    r = random.randint(r_range[0], r_range[1])
-    return (r, g, b)
+    h_new = (random.randint(100, 155)+h_mean) % 255
+    s_new = (random.randint(30, 225)+s_mean) % 255
+    v_new = (random.randint(30, 225)+v_mean) % 255
+    hsv_rgb = np.asarray([[[h_new,s_new,v_new]]], np.uint8)
+    rbg = cv2.cvtColor(hsv_rgb, cv2.COLOR_HSV2RGB_FULL)
+    r = rbg[0, 0, 0]
+    g = rbg[0, 0, 1]
+    b = rbg[0, 0, 2]
+    print(r, g, b)
 
 
 def random_get_font(font_lsit):
@@ -141,7 +147,7 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
     :param have_yen_path:
     :return:
     """
-    print(have_yen_path)
+    logger.info(have_yen_path)
     os.makedirs(have_yen_path, exist_ok=True)
     font_path = [os.path.join(src_fonts_path, font) for font in os.listdir(src_fonts_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
     for font in font_path:
@@ -154,7 +160,7 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
                 save_path = os.path.join(have_yen_path, name)
                 shutil.copy(font, save_path)
         except Exception as e:
-            print(font, e)
+            logger.info(font, e)
             continue
 
 
@@ -191,7 +197,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
             random.shuffle(chinese_synth_list)
             character_gen = CharacterGen(chinese_synth_list, batch_size=batch_size)
 
-            print("font name is {}, font index {}, generate epoch {}, batch size is {}".format(font.split("/")[-1], str(f_index), str(epoch), str(batch_size)))
+            logger.info("font name is {}, font index {}, generate epoch {}, batch size is {}".format(font.split("/")[-1], str(f_index), str(epoch), str(batch_size)))
             batch_repeat = len(chinese_synth) // 2 + 1  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
             for repeat_times in range(batch_repeat):
                 char_list = character_gen.get_next.__next__()
@@ -209,7 +215,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
                         ttf = TTFont(font)
                         uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
                         rmb = u'yen'
-                        print(rmb)
+                        logger.info(rmb)
                         if rmb in uni_list:
                             fnt = ImageFont.truetype(font, font_size)
                         else:
@@ -267,6 +273,6 @@ if __name__ == "__main__":
     path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
     path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
     path_save = '../data/train'
-    txt_save = '../data/train.txt'
+    txt_save = '../data/data.txt'
     #copy_have_yen_font(path_font, path_have_yen_path)
     ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
