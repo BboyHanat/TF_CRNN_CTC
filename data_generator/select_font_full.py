@@ -153,4 +153,4 @@ if __name__ == '__main__':
             print(font_name)
             save_path = os.path.join(mv_path, font_name)
             print(save_path)
-            #shutil.move(font, save_path)
+            shutil.move(font, save_path)
