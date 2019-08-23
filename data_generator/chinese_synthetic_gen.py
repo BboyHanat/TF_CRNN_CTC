@@ -272,7 +272,7 @@ if __name__ == "__main__":
     path_img = '/data/User/hanat/data/bg_image'
     path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
     path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-    path_save = '../data/train'
-    txt_save = '../data/data.txt'
+    path_save = '/hanat/data/train'
+    txt_save = '/hanat/data/data.txt'
     #copy_have_yen_font(path_font, path_have_yen_path)
     ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
