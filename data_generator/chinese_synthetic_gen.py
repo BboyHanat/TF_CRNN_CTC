@@ -68,6 +68,7 @@ def get_fontcolor(image):
     g = rbg[0, 0, 1]
     b = rbg[0, 0, 2]
     print(r, g, b)
+    return (r, g, b)
 
 
 def random_get_font(font_lsit):
