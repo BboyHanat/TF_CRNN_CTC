@@ -67,7 +67,6 @@ def get_fontcolor(image):
     r = rbg[0, 0, 0]
     g = rbg[0, 0, 1]
     b = rbg[0, 0, 2]
-    print(r, g, b)
     return (r, g, b)
 
 
