@@ -16,8 +16,8 @@ def init_args():
     :return:
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset_dir', type=str, default='../data', help='The origin synth90k dataset_dir')
-    parser.add_argument('-s', '--save_dir', type=str, default='../data/tfrecord', help='The generated tfrecords save dir')
+    parser.add_argument('-d', '--dataset_dir', type=str, default='/hanat/data', help='The origin synth90k dataset_dir')
+    parser.add_argument('-s', '--save_dir', type=str, default='/hanat/data/tfrecord', help='The generated tfrecords save dir')
 
     return parser.parse_args()
 
