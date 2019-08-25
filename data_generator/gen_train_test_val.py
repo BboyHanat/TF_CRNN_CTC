@@ -21,13 +21,14 @@ while True:
     line = data_fp.readline()
     if not line:
         break
-    i = random.randint(0,10)
+    i = random.randint(0, 10)
     if count % val_num_interval == 0 and count >= val_num_interval:
         val_fp.write(line)
     elif count % test_num_interval == 0 and count >= test_num_interval:
         test_fp.write(line)
     else:
         train_fp.write(line)
+    count += 1
 
 data_fp.close()
 train_fp.close()
