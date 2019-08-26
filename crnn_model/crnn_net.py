@@ -513,7 +513,7 @@ class ChineseCrnnNet:
         self.load_pretrained_model()
 
         while epoch < train_epochs:
-            _, loss, train_label = self.sess.run(fetches=[train_op, avg_train_loss, train_label])
+            _, loss = self.sess.run(fetches=[train_op, avg_train_loss])
             if epoch % show_epochs == 0 & epoch >= show_epochs:
                 logger.info('training loss {}'.format(str(loss)))
 
