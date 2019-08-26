@@ -514,11 +514,11 @@ class ChineseCrnnNet:
 
         while epoch < train_epochs:
             _, loss = self.sess.run(fetches=[train_op, avg_train_loss])
-            if epoch % show_epochs == 0 & epoch >= show_epochs:
+            if epoch % show_epochs == 0 and epoch >= show_epochs:
                 logger.info('training loss {}'.format(str(loss)))
 
 
-            if epoch % save_epochs == 0 & epoch >= save_epochs:
+            if epoch % save_epochs == 0 and epoch >= save_epochs:
                 model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
                 model_save_path = osp.join(model_save_dir, model_name)
                 saver.save(sess=self.sess, save_path=model_save_path)
