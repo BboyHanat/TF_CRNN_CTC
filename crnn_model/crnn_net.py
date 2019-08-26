@@ -489,7 +489,7 @@ class ChineseCrnnNet:
                     batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
         # load pretrained model if the path had been declared
-        self.load_pretrained_model()
+
         grads = self.average_gradients(grad_compute_list)
         avg_train_loss = tf.reduce_mean(loss_list)
         variable_averages = tf.train.ExponentialMovingAverage(0.9999, num_updates=global_step)
@@ -509,6 +509,8 @@ class ChineseCrnnNet:
         summary_writer.add_graph(self.sess.graph)
         saver = tf.train.Saver()
         epoch = 0
+
+        self.load_pretrained_model()
         while epoch < train_epochs:
             _, loss, train_label = self.sess.run(fetches=[train_op, avg_train_loss, train_label])
             if epoch % show_epochs == 0 & epoch >= show_epochs:
