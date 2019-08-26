@@ -44,7 +44,7 @@ def init_args():
                         help='Path to pre-trained weights to continue training')
     parser.add_argument('-tm', '--train_data_num', type=int, default=3471510,
                         help='Path to pre-trained weights to continue training')
-    parser.add_argument('-g', '--gpu_num', type=int, default=1,
+    parser.add_argument('-g', '--gpu_num', type=int, default=4,
                         help='Path to pre-trained weights to continue training')
 
     return parser.parse_args()
@@ -80,7 +80,7 @@ def train(dataset_dir, weights_path, train_data_num, gpu_num):
     train_epochs = train_data_num // batch_size * 50
     val_epochs = train_data_num // batch_size
     save_epochs = train_data_num // batch_size
-
+    show_epochs = 100
     decoder = tf_io_pipline_fast_tools.FeatureDecoder(lexicon_path=os.path.join(dataset_dir + "lexicon.txt"))
     chinese_crnn = ChineseCrnnNet(hidden_nums=hidden_nums,
                                   layers_nums=hidden_layers,
@@ -105,6 +105,7 @@ def train(dataset_dir, weights_path, train_data_num, gpu_num):
                                  val_epochs=val_epochs,
                                  train_epochs=train_epochs,
                                  save_epochs=save_epochs,
+                                 show_epochs=show_epochs
                                  )
 
 
