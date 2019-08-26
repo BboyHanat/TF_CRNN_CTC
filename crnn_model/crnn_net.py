@@ -523,7 +523,7 @@ class ChineseCrnnNet:
                 model_save_path = osp.join(model_save_dir, model_name)
                 saver.save(sess=self.sess, save_path=model_save_path)
             epoch += 1
-            print(epoch)
+
 
     def validation(self,
                    val_input_data,
