@@ -55,7 +55,7 @@ __C.TRAIN.BATCH_SIZE = 128
 # Set the shadownet validation batch size
 __C.TRAIN.VAL_BATCH_SIZE = 32
 # Set the learning rate decay steps
-__C.TRAIN.LR_DECAY_STEPS = 500000
+__C.TRAIN.LR_DECAY_STEPS = 10000     # multi gpu training
 # Set the learning rate decay rate
 __C.TRAIN.LR_DECAY_RATE = 0.1
 # Update learning rate in jumps?
