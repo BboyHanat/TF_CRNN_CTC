@@ -58,10 +58,10 @@ def train(dataset_dir, weights_path, train_data_num, gpu_num):
     :param train_data_num:
     :return:
     """
-    # sess_config = tf.ConfigProto(allow_soft_placement=True)
+    sess_config = tf.ConfigProto(allow_soft_placement=True)
     # sess_config.gpu_options.per_process_gpu_memory_fraction = CFG.TRAIN.GPU_MEMORY_FRACTION
     # sess_config.gpu_options.allow_growth = CFG.TRAIN.TF_ALLOW_GROWTH
-    sess = tf.Session()
+    sess = tf.Session(config=sess_config)
     # prepare dataset
     train_dataset = shadownet_data_feed_pipline.CrnnDataFeeder(
         dataset_dir=dataset_dir,

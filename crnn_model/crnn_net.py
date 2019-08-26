@@ -144,7 +144,7 @@ class ChineseCrnnNet:
     def compute_loss(self, rnn_output, labels, seq_len, batch_size):
         """
         compute network loss
-        :param inputdata:tensor[batch, h, w, c]
+        :param rnn_output:tensor[batch, h, w, c]
         :param labels:tensor[batch, [sparse label sequence]]
         :param name:
         :param reuse:
@@ -509,9 +509,8 @@ class ChineseCrnnNet:
         summary_writer.add_graph(self.sess.graph)
         saver = tf.train.Saver()
         epoch = 0
-
         while epoch < train_epochs:
-            _, loss = self.sess.run(fetches=[train_op, avg_train_loss])
+            _, loss, train_label = self.sess.run(fetches=[train_op, avg_train_loss, train_label])
             if epoch % show_epochs == 0 & epoch >= show_epochs:
                 logger.info('training loss {}'.format(str(loss)))
 
