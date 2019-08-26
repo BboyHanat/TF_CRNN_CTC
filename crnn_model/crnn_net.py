@@ -107,7 +107,7 @@ class ChineseCrnnNet:
             rnn_out = tf.transpose(logits, [1, 0, 2], name='transpose_time_major')  # [width, batch, n_classes]
         return rnn_out, raw_pred
 
-    def inference(self, name, reuse=False):
+    def inference(self, input_data, name, reuse=False):
         """
         Main routine to construct the network
         :param inputdata:tensor[batch, h, w, c]
@@ -116,7 +116,7 @@ class ChineseCrnnNet:
         :return:
         """
         # first apply the cnn feature extraction stage
-        cnn_out = vgg_16(self.input_data)
+        cnn_out = vgg_16(input_data)
         with tf.variable_scope(name_or_scope=name, reuse=reuse):
             # second apply the map to sequence stage
             sequence = self._map_to_sequence(
@@ -141,7 +141,7 @@ class ChineseCrnnNet:
         )
         return decoded, log_prob
 
-    def compute_loss(self, rnn_output, seq_len, batch_size):
+    def compute_loss(self, rnn_output, labels, seq_len, batch_size):
         """
         compute network loss
         :param inputdata:tensor[batch, h, w, c]
@@ -152,7 +152,7 @@ class ChineseCrnnNet:
         """
         loss = tf.reduce_mean(
             tf.nn.ctc_loss(
-                labels=self.labels, inputs=rnn_output,
+                labels=labels, inputs=rnn_output,
                 sequence_length=seq_len * np.ones(batch_size),
             ),
             name='ctc_loss'
@@ -180,6 +180,67 @@ class ChineseCrnnNet:
         # optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss=loss, global_step=global_step)
         optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(loss=loss, global_step=global_step)
         return optimizer, learning_rate
+
+    def average_gradients(self, tower_grads):
+        """Calculate the average gradient for each shared variable across all towers.
+        Note that this function provides a synchronization point across all towers.
+        Args:
+          tower_grads: List of lists of (gradient, variable) tuples. The outer list
+            is over individual gradients. The inner list is over the gradient
+            calculation for each tower.
+        Returns:
+           List of pairs of (gradient, variable) where the gradient has been averaged
+           across all towers.
+        """
+        average_grads = []
+        for grad_and_vars in zip(*tower_grads):
+            # Note that each grad_and_vars looks like the following:
+            #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
+            grads = []
+            for g, _ in grad_and_vars:
+                # Add 0 dimension to the gradients to represent the tower.
+                expanded_g = tf.expand_dims(g, 0)
+
+                # Append on a 'tower' dimension which we will average over below.
+                grads.append(expanded_g)
+
+            # Average over the 'tower' dimension.
+            grad = tf.concat(grads, 0)
+            grad = tf.reduce_mean(grad, 0)
+
+            # Keep in mind that the Variables are redundant because they are shared
+            # across towers. So .. we will just return the first tower's pointer to
+            # the Variable.
+            v = grad_and_vars[0][1]
+            grad_and_var = (grad, v)
+            average_grads.append(grad_and_var)
+
+        return average_grads
+
+    def compute_net_gradients(self, images, labels, net, optimizer=None, is_net_first_initialized=False):
+        """
+        Calculate gradients for single GPU
+        :param images: images for training
+        :param labels: labels corresponding to images
+        :param net: classification model
+        :param optimizer: network optimizer
+        :param is_net_first_initialized: if the network is initialized
+        :return:
+        """
+        _, net_loss = net.compute_loss(
+            inputdata=images,
+            labels=labels,
+            name='shadow_net',
+            reuse=is_net_first_initialized
+        )
+
+        if optimizer is not None:
+            grads = optimizer.compute_gradients(net_loss)
+        else:
+            grads = None
+
+        return net_loss, grads
+
 
     def compute_accuracy(self, ground_truth, decode_sequence, display=False, mode='per_char'):
         """
@@ -313,9 +374,9 @@ class ChineseCrnnNet:
 
         # define crnn network and optimizer
         global_step = tf.Variable(0, dtype=tf.int32, name='g_step', trainable=False)
-        inference_ret = self.inference(name=name, reuse=False)
+        inference_ret = self.inference(input_data=self.input_data, name=name, reuse=False)
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
-        loss = self.compute_loss(inference_ret, sql_len, batch_size)
+        loss = self.compute_loss(inference_ret, self.labels, sql_len, batch_size)
         optimizer, learning_rate = self.graph_optimizer(loss, global_step)
 
         # define tensorflow summary
@@ -369,6 +430,102 @@ class ChineseCrnnNet:
             model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
             model_save_path = osp.join(model_save_dir, model_name)
             saver.save(sess=self.sess, save_path=model_save_path)
+
+    def multi_gpu_train(self,
+                        gpu_num,
+                        train_input_data,
+                        train_label,
+                        val_input_data,
+                        val_label,
+                        sql_len,
+                        batch_size,
+                        name,
+                        val_epochs,
+                        train_epochs=1000,
+                        save_epochs = 1000,
+                        show_epochs=1000,
+                        tboard_save_dir='../tboard/crnn_chinese_ocr',
+                        model_save_dir='../ckpt/chinese_ocr_multi'):
+        """
+
+        :param train_input_data:
+        :param train_label:
+        :param val_input_data:
+        :param val_label:
+        :param sql_len:
+        :param batch_size:
+        :param name:
+        :param train_data_num:
+        :param val_times:
+        :param train_epochs:
+        :param show_step:
+        :param val_step:
+        :param need_decode:
+        :param tboard_save_dir:
+        :param model_save_dir:
+        :return:
+        """
+        # define crnn network and optimizer
+        global_step = tf.Variable(0, dtype=tf.int32, name='g_step', trainable=False)
+        learning_rate = tf.train.exponential_decay(
+            learning_rate=self.learning_rate,
+            global_step=global_step,
+            decay_steps=self.lr_decay_steps,
+            decay_rate=self.lr_decay_rate,
+            staircase=self.lr_staircase)
+        optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
+        grad_compute_list = []
+        loss_list = []
+        for i in range(gpu_num):
+            with tf.device('/gpu:{:d}'.format(i)):
+                inference_ret = self.inference(train_input_data, name=name, reuse=False)
+                loss = self.compute_loss(inference_ret, train_label, sql_len, batch_size)
+
+                grad_compute = optimizer.compute_gradients(loss)
+                grad_compute_list.append(grad_compute)
+                loss_list.append(loss)
+
+                if i == 0:
+                    batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+
+        # load pretrained model if the path had been declared
+        self.load_pretrained_model()
+        grads = self.average_gradients(grad_compute_list)
+        avg_train_loss = tf.reduce_mean(loss_list)
+        variable_averages = tf.train.ExponentialMovingAverage(0.9999, num_updates=global_step)
+        variables_to_average = tf.trainable_variables() + tf.moving_average_variables()
+        variables_averages_op = variable_averages.apply(variables_to_average)
+
+        batchnorm_updates_op = tf.group(*batchnorm_updates)
+        apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)   # 应用梯度
+        train_op = tf.group(apply_gradient_op, variables_averages_op,
+                            batchnorm_updates_op)
+
+        # define tensorflow summary
+        tf.summary.scalar(name='train_ctc_loss', tensor=loss)
+        tf.summary.scalar(name='learning_rate', tensor=learning_rate)
+        merge_summary_op = tf.summary.merge_all()
+        summary_writer = tf.summary.FileWriter(tboard_save_dir)
+        summary_writer.add_graph(self.sess.graph)
+        saver = tf.train.Saver()
+        epoch = 0
+
+        while epoch < train_epochs:
+            _, loss = self.sess.run(fetches=[train_op, avg_train_loss])
+            if epoch % show_epochs == 0 & epoch >= show_epochs:
+                logger.info('training loss {}'.format(str(loss)))
+
+            epoch += 1
+            if epoch % save_epochs == 0 & epoch >= save_epochs:
+                model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
+                model_save_path = osp.join(model_save_dir, model_name)
+                saver.save(sess=self.sess, save_path=model_save_path)
+
+
+
+
+
+
 
     def validation(self,
                    val_input_data,
