@@ -23,7 +23,7 @@ __C.ARCH.INPUT_SIZE = (320, 32)  # synth90k dataset
 __C.ARCH.INPUT_CHANNELS = 3
 # Number character classes
 # __C.ARCH.NUM_CLASSES = 5825  # cn dataset
-__C.ARCH.NUM_CLASSES = 139  # synth90k dataset
+__C.ARCH.NUM_CLASSES = 3826  # synth90k dataset
 
 # Train options
 __C.TRAIN = edict()
