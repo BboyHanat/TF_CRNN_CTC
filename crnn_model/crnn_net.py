@@ -477,7 +477,7 @@ class ChineseCrnnNet:
         grad_compute_list = []
         loss_list = []
         for i in range(gpu_num):
-            with tf.device('/gpu:{:d}'.format(i)):
+            with tf.device('/gpu:{:d}'.format(i+3)):
                 inference_ret = self.inference(train_input_data, name=name, reuse=tf.AUTO_REUSE)
                 loss = self.compute_loss(inference_ret, train_label, sql_len, batch_size)
 
