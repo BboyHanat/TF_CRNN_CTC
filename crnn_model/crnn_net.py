@@ -517,17 +517,13 @@ class ChineseCrnnNet:
             if epoch % show_epochs == 0 & epoch >= show_epochs:
                 logger.info('training loss {}'.format(str(loss)))
 
-            epoch += 1
+
             if epoch % save_epochs == 0 & epoch >= save_epochs:
                 model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
                 model_save_path = osp.join(model_save_dir, model_name)
                 saver.save(sess=self.sess, save_path=model_save_path)
-
-
-
-
-
-
+            epoch += 1
+            print(epoch)
 
     def validation(self,
                    val_input_data,
