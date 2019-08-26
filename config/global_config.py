@@ -61,9 +61,9 @@ __C.TRAIN.LR_DECAY_RATE = 0.1
 # Update learning rate in jumps?
 __C.TRAIN.LR_STAIRCASE = True
 # Set multi process nums
-__C.TRAIN.CPU_MULTI_PROCESS_NUMS = 6
+__C.TRAIN.CPU_MULTI_PROCESS_NUMS = 24
 # Set Gpu nums
-__C.TRAIN.GPU_NUM = 2
+__C.TRAIN.GPU_NUM = 4
 # Set moving average decay
 __C.TRAIN.MOVING_AVERAGE_DECAY = 0.9999
 # Set val display step
