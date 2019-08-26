@@ -2,14 +2,27 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import tensorflow as tf
-import glog as logger
+import logging
+from logging.handlers import TimedRotatingFileHandler
+import os
 from os import path as osp
 from tensorflow.contrib import rnn
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.contrib import slim
-from crnn_model.vgg import vgg_a, vgg_16
+from crnn_model.vgg import vgg_16
+import math
 
-logger.init()
+osp = os.path
+
+trHandler = TimedRotatingFileHandler("train_log.log", when="w1", interval=4, backupCount=12)
+formatter = logging.Formatter('%(asctime)s.%(msecs)03d:%(filename)-12s[%(lineno)4d] %(levelname)-6s %(message)s',
+                                  '%Y-%m-%d %H:%M:%S')
+level = logging.DEBUG
+trHandler.setFormatter(formatter)
+trHandler.setLevel(level)
+logger = logging.getLogger()
+logger.addHandler(trHandler)
+
 
 
 class ChineseCrnnNet:
@@ -216,31 +229,6 @@ class ChineseCrnnNet:
             average_grads.append(grad_and_var)
 
         return average_grads
-
-    def compute_net_gradients(self, images, labels, net, optimizer=None, is_net_first_initialized=False):
-        """
-        Calculate gradients for single GPU
-        :param images: images for training
-        :param labels: labels corresponding to images
-        :param net: classification model
-        :param optimizer: network optimizer
-        :param is_net_first_initialized: if the network is initialized
-        :return:
-        """
-        _, net_loss = net.compute_loss(
-            inputdata=images,
-            labels=labels,
-            name='shadow_net',
-            reuse=is_net_first_initialized
-        )
-
-        if optimizer is not None:
-            grads = optimizer.compute_gradients(net_loss)
-        else:
-            grads = None
-
-        return net_loss, grads
-
 
     def compute_accuracy(self, ground_truth, decode_sequence, display=False, mode='per_char'):
         """
@@ -487,6 +475,7 @@ class ChineseCrnnNet:
 
                 if i == 0:
                     batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+                    train_summary_op_updates = tf.get_collection(tf.GraphKeys.SUMMARIES)
 
         # load pretrained model if the path had been declared
 
@@ -502,26 +491,34 @@ class ChineseCrnnNet:
                             batchnorm_updates_op)
 
         # define tensorflow summary
-        tf.summary.scalar(name='train_ctc_loss', tensor=loss)
-        tf.summary.scalar(name='learning_rate', tensor=learning_rate)
-        merge_summary_op = tf.summary.merge_all()
+        avg_train_loss_scalar = tf.summary.scalar(name='train_ctc_loss', tensor=avg_train_loss)
+        learning_rate_scalar = tf.summary.scalar(name='learning_rate', tensor=learning_rate)
+        train_merge_summary_op = tf.summary.merge([avg_train_loss_scalar, learning_rate_scalar] + train_summary_op_updates)
+
+        os.makedirs(tboard_save_dir, exist_ok=True)
         summary_writer = tf.summary.FileWriter(tboard_save_dir)
         summary_writer.add_graph(self.sess.graph)
         saver = tf.train.Saver()
         epoch = 0
 
         self.load_pretrained_model()
-
         while epoch < train_epochs:
-            _, loss = self.sess.run(fetches=[train_op, avg_train_loss])
+            _, train_loss_value, lr, train_summary = self.sess.run(fetches=[train_op, avg_train_loss, learning_rate, train_merge_summary_op])
+
+            if math.isnan(train_loss_value):
+                raise ValueError('Train loss is nan')
+
+            summary_writer.add_summary(summary=train_summary, global_step=epoch)
+
             if epoch % show_epochs == 0 and epoch >= show_epochs:
-                logger.info('training loss {}'.format(str(loss)))
+                logger.info('epoch {} training loss {}'.format(str(epoch), str(train_loss_value)))
 
 
             if epoch % save_epochs == 0 and epoch >= save_epochs:
                 model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
                 model_save_path = osp.join(model_save_dir, model_name)
                 saver.save(sess=self.sess, save_path=model_save_path)
+                logger.info('save model {}'.format(model_name))
             epoch += 1
 
 
@@ -532,7 +529,7 @@ class ChineseCrnnNet:
                    batch_size,
                    val_times,
                    name):
-        inference_ret = self.inference(name=name, reuse=False)
+        inference_ret = self.inference(self.input_data, name=name, reuse=False)
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
         # load pretrained model if the path had been declared
         self.load_pretrained_model()
