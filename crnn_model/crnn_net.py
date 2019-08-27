@@ -100,21 +100,11 @@ class ChineseCrnnNet:
                 fw_cell_list, bw_cell_list, inputdata,
                 dtype=tf.float32
             )
-            stack_lstm_layer = tf.nn.dropout(stack_lstm_layer, 0.5, name='sequence_drop_out')
+            stack_lstm_layer = tf.nn.dropout(stack_lstm_layer, 0.5, name='sequence_drop_out_multi')
             [_, _, hidden_nums] = inputdata.get_shape().as_list()  # [batch, width, 2*n_hidden]
             # shape = tf.shape(stack_lstm_layer)
             # rnn_reshaped = tf.reshape(stack_lstm_layer, [shape[0] * shape[1], shape[2]])
-            logits = slim.fully_connected(stack_lstm_layer, self._num_classes, activation_fn=None)
-
-            # # w = tf.get_variable(
-            # #     name='w',
-            # #     shape=[hidden_nums, self._num_classes],
-            # #     initializer=tf.truncated_normal_initializer(stddev=0.02),
-            # #     trainable=True
-            # # )
-            # # Doing the affine projection
-            # logits = tf.matmul(rnn_reshaped, w, name='logits')
-            # logits = tf.reshape(logits, [shape[0], shape[1], self._num_classes], name='logits_reshape')
+            logits = slim.fully_connected(stack_lstm_layer, self._num_classes, activation_fn=None,scope='logits_fc')
             raw_pred = tf.argmax(tf.nn.softmax(logits), axis=2, name='raw_prediction')
             # Swap batch and batch axis
             rnn_out = tf.transpose(logits, [1, 0, 2], name='transpose_time_major')  # [width, batch, n_classes]
