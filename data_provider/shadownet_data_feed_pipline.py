@@ -29,6 +29,7 @@ class CrnnDataProducer(object):
     """
     Convert raw image file into tfrecords
     """
+
     def __init__(self, dataset_dir, writer_process_nums=4):
         """
         init crnn data producer
@@ -59,7 +60,6 @@ class CrnnDataProducer(object):
         self._test_sample_infos = []
         self._val_sample_infos = []
         self._init_dataset_sample_info()
-
 
     def generate_tfrecords(self, save_dir):
         """
@@ -135,7 +135,6 @@ class CrnnDataProducer(object):
         label_index = [self._lexicon_list.index(char) for char in label if char in self._lexicon_list]
         return label_index
 
-
     def _init_dataset_sample_info(self):
         """
         organize dataset sample information, read all the lexicon information in lexicon list.
@@ -148,7 +147,7 @@ class CrnnDataProducer(object):
         num_lines = sum(1 for _ in open(self._lexicon_file_path, 'r'))
         self._lexicon_list = None
         with open(self._lexicon_file_path, 'r', encoding='utf-8') as file:
-                self._lexicon_list=file.readline().rstrip('\r').rstrip('\n')
+            self._lexicon_list = file.readline().rstrip('\r').rstrip('\n')
         self._lexicon_list = list(self._lexicon_list)
 
         # establish train example info
@@ -198,6 +197,7 @@ class CrnnDataFeeder(object):
     """
     Read training examples from tfrecords for crnn model
     """
+
     def __init__(self, dataset_dir, flags='train'):
         """
         crnn net dataset io pip line

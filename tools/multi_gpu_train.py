@@ -77,9 +77,9 @@ def train(dataset_dir, weights_path, train_data_num, gpu_num):
     val_images, val_labels, val_images_paths = val_dataset.inputs(
         batch_size=CFG.TRAIN.BATCH_SIZE
     )
-    train_epochs = train_data_num // batch_size * 50
-    val_epochs = train_data_num // batch_size
-    save_epochs = train_data_num // batch_size
+    train_epochs = train_data_num // (batch_size*gpu_num) * 100
+    val_epochs = train_data_num // (batch_size*gpu_num)
+    save_epochs = train_data_num // (batch_size*gpu_num)
     show_epochs = 100
     decoder = tf_io_pipline_fast_tools.FeatureDecoder(lexicon_path=os.path.join(dataset_dir + "lexicon.txt"))
     chinese_crnn = ChineseCrnnNet(hidden_nums=hidden_nums,
