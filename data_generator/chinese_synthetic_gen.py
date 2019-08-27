@@ -6,7 +6,7 @@ Time    : 2019-08-07 10:15
 Desc:
 """
 import sys
-
+from multiprocessing import Pool
 sys.path.append("..")
 import numpy as np
 import cv2
@@ -21,7 +21,6 @@ import glog as logger
 
 img_format = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
 font_format = ["ttf", 'eot', 'fon', 'font', 'woff', 'woff2', 'otf', 'ttc', 'TTF', 'TTC', 'OTF', 'EOT', 'FONT', 'FON', 'WOFF', 'WOFF2']
-symbol = [',', '.', '。', '?', '¥', '$', '#', '+', '(', ')', '/', '-', '*', '@', '%', '~']
 
 
 def random_region(image, width_limit=100, height_limit=100):
@@ -61,7 +60,7 @@ def get_fontcolor(image):
 
     h_new = (random.randint(100, 155)+h_mean) % 255
     s_new = (random.randint(30, 225)+s_mean) % 255
-    v_new = (random.randint(30, 225)+v_mean) % 255
+    v_new = (random.randint(70, 185)+v_mean) % 255
     hsv_rgb = np.asarray([[[h_new,s_new,v_new]]], np.uint8)
     rbg = cv2.cvtColor(hsv_rgb, cv2.COLOR_HSV2RGB_FULL)
     r = rbg[0, 0, 0]
@@ -78,28 +77,6 @@ def random_get_font(font_lsit):
     """
     font = random.randint(0, len(font_lsit))
     return font
-
-
-def random_shuffle_add_symbol(synthetic, two_symbol_limit=7):
-    """
-    random shuffle and random add symbol
-    :param synthetic:
-    :return:
-    """
-    random.shuffle(synthetic)
-    a = random.randint(0, 10)
-    if a >= 5 and a < 7:
-        which_symbol = random.randint(0, len(symbol))
-        loc = random.randint(0, len(synthetic))
-        synthetic.insert(loc, symbol[which_symbol])
-    elif a >= 7 and len(synthetic) > two_symbol_limit:
-        which_symbol1 = random.randint(0, len(symbol))
-        which_symbol2 = random.randint(0, len(symbol))
-        loc1 = random.randint(0, len(synthetic))
-        synthetic.insert(loc1, symbol[which_symbol1])
-        loc2 = random.randint(0, len(synthetic))
-        synthetic.insert(loc2, symbol[which_symbol2])
-    return synthetic
 
 
 def random_shuffle_synthetic(synthetic):
@@ -164,116 +141,97 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
             continue
 
 
+######################################################
+path_chinese_synthetic = "./chinese_synthetic.txt"
+path_img = '/data/User/李佳楠/data/ocr_background_img'
+path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
+path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'     #'/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
+path_save = '/hanat/data1/image_data'
+annotation_file = '/hanat/data1/data_'
+font_size_range = (30, 100)
+process_num = 16
 
-def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, annotation_file, shuffle_limmit=15, shuffle_repeat=1, font_size_range=(30, 100)):
+os.makedirs(path_save, exist_ok=True)
+fp = open(path_chinese_synthetic, "r")
+chinese_synth = fp.readline()
+fp.close()
+
+img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
+font_path = [(index, os.path.join(path_font, font)) for index,font in enumerate(os.listdir(path_font)) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+
+
+def ocr_data_thread(font_info):
     """
-    生成ocr数据
-    1 生成文字ocr图像数据
-    2 生成txt文件 内容每一行（*_*.jpg 杭啊哎哦发卷发）
-    :param path_chinese_synthetic:
-    :param path_img:
-    :param path_font:
-    :param path_save:
-    :param annotation_file:
-    :param shuffle_limmit:
-    :param shuffle_repeat:
-    :param font_size_range:
+
+    :param font_path:
     :return:
     """
-    os.makedirs(path_save, exist_ok=True)
-    fp = open(path_chinese_synthetic, "r")
-    chinese_synth = fp.readline()
 
-    img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
-    font_path = [os.path.join(path_font, font) for font in os.listdir(path_font) if font.split(".")[-1] in font_format and ('.DS' not in font)]
-    font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
-    fp.close()
-    fp = open(annotation_file, "w")
-    epoch = 0
-    for f_index, font in enumerate(font_path):
-        # fnt_bytes = open(font,'r')
-        for batch_size in range(10, 11):
-            chinese_synth_list = list(chinese_synth)
-            random.shuffle(chinese_synth_list)
-            character_gen = CharacterGen(chinese_synth_list, batch_size=batch_size)
+    index = font_info[0]
+    font = font_info[1]
+    fp_txt = open(annotation_file + str(index % process_num) + '.txt', "a+")
+    batch_size = 10
+    chinese_synth_list = list(chinese_synth)
+    random.shuffle(chinese_synth_list)
+    character_gen = CharacterGen(chinese_synth_list, batch_size=batch_size)
+    try:
+        fnt = ImageFont.truetype(font, 32)
+    except:
+        return
+    batch_repeat = 10  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
+    for repeat_times in range(batch_repeat):
+        fnt1 = fnt
+        logger.info("font name is {}, font index {}, batch size is {} step is {}".format(font.split("/")[-1], str(index), str(batch_size), str(repeat_times)))
+        char_list = character_gen.get_next.__next__()
+        image = None
+        font_size = random.randint(font_size_range[0], font_size_range[1])
+        fnt1.size = font_size
+        while image is None:
+            img_seek = random.randint(0, len(img_path) - 1)
+            try:
+                image = cv2.imread(img_path[img_seek])
+                image = Image.fromarray(image)
+            except:
+                continue
+        try:
+            if '^' in char_list:
+                ttf = TTFont(font)
+                uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+                rmb = u'yen'
+                if rmb not in uni_list:
+                    font_have_yen = random.randint(0, len(font_have_yen_path)-1)
+                    font = font_have_yen_path[font_have_yen]
+                    fnt1 = ImageFont.truetype(font, font_size)
 
-            logger.info("font name is {}, font index {}, generate epoch {}, batch size is {}".format(font.split("/")[-1], str(f_index), str(epoch), str(batch_size)))
-            batch_repeat = 38250  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
-            for repeat_times in range(batch_repeat):
-                char_list = character_gen.get_next.__next__()
-                image = None
-                while image is None:
-                    img_seek = random.randint(0, len(img_path) - 1)
-                    try:
-                        image = cv2.imread(img_path[img_seek])
-                        image = Image.fromarray(image)
-                    except:
-                        continue
-                font_size = random.randint(font_size_range[0], font_size_range[1])
-                try:
-                    if '¥' in char_list:
-                        ttf = TTFont(font)
-                        uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
-                        rmb = u'yen'
-                        logger.info(rmb)
-                        if rmb in uni_list:
-                            fnt = ImageFont.truetype(font, font_size)
-                        else:
-                            font_have_yen = random.randint(0, len(font_have_yen_path)-1)
-                            font = font_have_yen_path[font_have_yen]
-                            fnt = ImageFont.truetype(font, font_size)
-                    else:
-                        fnt = ImageFont.truetype(font, font_size)
+            char_list = "".join(char_list)
+            size = fnt1.getsize(char_list)
+            bg_pil = random_region(image, size[0], size[1])
+            draw = ImageDraw.Draw(bg_pil)
+            color = get_fontcolor(bg_pil)
+            draw.text((0, 0), char_list, fill=color, font=fnt1)
+            image_name = str(index) + "_" + str(repeat_times) + ".jpg"
+            image_save = os.path.join(path_save, image_name)
+            bg_pil.save(image_save)
+            if os.path.exists(image_save):
+                if os.path.getsize(image_save) > 1:
+                    annotation_info = image_name + "^" + char_list + "\n"
+                    fp_txt.write(annotation_info)
+                else:
+                    os.remove(image_save)
+        except:
+            print("FUCK!!!!!!!", chinese_synth_list)
+            continue
+    fp_txt.close()
 
-                    # if len(char_list) > shuffle_limmit:
-                    #     for shuffle_times in range(shuffle_repeat):
-                    #         char_list_shuffled = random_shuffle_synthetic(char_list)
-                    #         char_list_shuffled = "".join(char_list_shuffled)
-                    #         size = fnt.getsize(char_list_shuffled)
-                    #         bg_pil = random_region(image, size[0], size[1])
-                    #         draw = ImageDraw.Draw(bg_pil)
-                    #         color = get_fontcolor(bg_pil)
-                    #         draw.text((0, 0), char_list_shuffled, fill=color, font=fnt)
-                    #         now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-                    #         image_name = now + "_" + str(shuffle_times) + "_" + str(repeat_times) + ".jpg"
-                    #         image_save = os.path.join(path_save, image_name)
-                    #         bg_pil.save(image_save)
-                    #         if os.path.exists(image_save):
-                    #             if os.path.getsize(image_save) > 1:
-                    #                 annotation_info = image_name + "^" + char_list_shuffled + "\n"
-                    #                 fp.write(annotation_info)
-                    #             else:
-                    #                 os.remove(image_save)
-                    # else:
-                    char_list = "".join(char_list)
-                    size = fnt.getsize(char_list)
-                    bg_pil = random_region(image, size[0], size[1])
-                    draw = ImageDraw.Draw(bg_pil)
-                    color = get_fontcolor(bg_pil)
-                    draw.text((0, 0), char_list, fill=color, font=fnt)
-                    now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-                    image_name = now + "_" + str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')) + "_" + str(repeat_times) + ".jpg"
-                    image_save = os.path.join(path_save, image_name)
-                    bg_pil.save(image_save)
-                    if os.path.exists(image_save):
-                        if os.path.getsize(image_save) > 1:
-                            annotation_info = image_name + "^" + char_list + "\n"
-                            fp.write(annotation_info)
-                        else:
-                            os.remove(image_save)
-                except:
-                    print("FUCK!!!!!!!", chinese_synth_list)
-                    continue
-            epoch += 1
+start = datetime.datetime.now()
+pool = Pool(process_num)
+print(len(font_path))
+for font_info in font_path:
+    pool.apply_async(ocr_data_thread, (font_info, ))
+pool.close()
+pool.join()
 
+end = datetime.datetime.now()
+print(end-start)
 
-if __name__ == "__main__":
-    os.makedirs('/hanat/data1', exist_ok=True)
-    path_chinese_synthetic = "./chinese_synthetic.txt"
-    path_img = '/data/User/李佳楠/data/ocr_background_img'
-    path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
-    path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-    path_save = '/hanat/data1/train'
-    txt_save = '/hanat/data1/data.txt'
-    #copy_have_yen_font(path_font, path_have_yen_path)
-    ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
