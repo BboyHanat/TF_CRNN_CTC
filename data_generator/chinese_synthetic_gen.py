@@ -165,7 +165,7 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
 
 
 
-def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, annotation_file, shuffle_limmit=5, shuffle_repeat=15, font_size_range=(30, 100)):
+def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, annotation_file, shuffle_limmit=15, shuffle_repeat=1, font_size_range=(30, 100)):
     """
     生成ocr数据
     1 生成文字ocr图像数据
@@ -198,7 +198,7 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
             character_gen = CharacterGen(chinese_synth_list, batch_size=batch_size)
 
             logger.info("font name is {}, font index {}, generate epoch {}, batch size is {}".format(font.split("/")[-1], str(f_index), str(epoch), str(batch_size)))
-            batch_repeat = len(chinese_synth) // 2 + 1  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
+            batch_repeat = 38250  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
             for repeat_times in range(batch_repeat):
                 char_list = character_gen.get_next.__next__()
                 image = None
@@ -225,42 +225,42 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
                     else:
                         fnt = ImageFont.truetype(font, font_size)
 
-                    if len(char_list) > shuffle_limmit:
-                        for shuffle_times in range(shuffle_repeat):
-                            char_list_shuffled = random_shuffle_synthetic(char_list)
-                            char_list_shuffled = "".join(char_list_shuffled)
-                            size = fnt.getsize(char_list_shuffled)
-                            bg_pil = random_region(image, size[0], size[1])
-                            draw = ImageDraw.Draw(bg_pil)
-                            color = get_fontcolor(bg_pil)
-                            draw.text((0, 0), char_list_shuffled, fill=color, font=fnt)
-                            now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-                            image_name = now + "_" + str(shuffle_times) + "_" + str(repeat_times) + ".jpg"
-                            image_save = os.path.join(path_save, image_name)
-                            bg_pil.save(image_save)
-                            if os.path.exists(image_save):
-                                if os.path.getsize(image_save) > 1:
-                                    annotation_info = image_name + "^" + char_list_shuffled + "\n"
-                                    fp.write(annotation_info)
-                                else:
-                                    os.remove(image_save)
-                    else:
-                        char_list = "".join(char_list)
-                        size = fnt.getsize(char_list)
-                        bg_pil = random_region(image, size[0], size[1])
-                        draw = ImageDraw.Draw(bg_pil)
-                        color = get_fontcolor(bg_pil)
-                        draw.text((0, 0), char_list, fill=color, font=fnt)
-                        now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-                        image_name = now + "_" + str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')) + "_" + str(repeat_times) + ".jpg"
-                        image_save = os.path.join(path_save, image_name)
-                        bg_pil.save(image_save)
-                        if os.path.exists(image_save):
-                            if os.path.getsize(image_save) > 1:
-                                annotation_info = image_name + "^" + char_list + "\n"
-                                fp.write(annotation_info)
-                            else:
-                                os.remove(image_save)
+                    # if len(char_list) > shuffle_limmit:
+                    #     for shuffle_times in range(shuffle_repeat):
+                    #         char_list_shuffled = random_shuffle_synthetic(char_list)
+                    #         char_list_shuffled = "".join(char_list_shuffled)
+                    #         size = fnt.getsize(char_list_shuffled)
+                    #         bg_pil = random_region(image, size[0], size[1])
+                    #         draw = ImageDraw.Draw(bg_pil)
+                    #         color = get_fontcolor(bg_pil)
+                    #         draw.text((0, 0), char_list_shuffled, fill=color, font=fnt)
+                    #         now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+                    #         image_name = now + "_" + str(shuffle_times) + "_" + str(repeat_times) + ".jpg"
+                    #         image_save = os.path.join(path_save, image_name)
+                    #         bg_pil.save(image_save)
+                    #         if os.path.exists(image_save):
+                    #             if os.path.getsize(image_save) > 1:
+                    #                 annotation_info = image_name + "^" + char_list_shuffled + "\n"
+                    #                 fp.write(annotation_info)
+                    #             else:
+                    #                 os.remove(image_save)
+                    # else:
+                    char_list = "".join(char_list)
+                    size = fnt.getsize(char_list)
+                    bg_pil = random_region(image, size[0], size[1])
+                    draw = ImageDraw.Draw(bg_pil)
+                    color = get_fontcolor(bg_pil)
+                    draw.text((0, 0), char_list, fill=color, font=fnt)
+                    now = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+                    image_name = now + "_" + str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')) + "_" + str(repeat_times) + ".jpg"
+                    image_save = os.path.join(path_save, image_name)
+                    bg_pil.save(image_save)
+                    if os.path.exists(image_save):
+                        if os.path.getsize(image_save) > 1:
+                            annotation_info = image_name + "^" + char_list + "\n"
+                            fp.write(annotation_info)
+                        else:
+                            os.remove(image_save)
                 except:
                     print("FUCK!!!!!!!", chinese_synth_list)
                     continue
@@ -268,11 +268,12 @@ def ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_p
 
 
 if __name__ == "__main__":
+    os.makedirs('/hanat/data1', exist_ok=True)
     path_chinese_synthetic = "./chinese_synthetic.txt"
-    path_img = '/data/User/hanat/data/bg_image'
+    path_img = '/data/User/李佳楠/data/ocr_background_img'
     path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
     path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-    path_save = '/hanat/data/train'
-    txt_save = '/hanat/data/data.txt'
+    path_save = '/hanat/data1/train'
+    txt_save = '/hanat/data1/data.txt'
     #copy_have_yen_font(path_font, path_have_yen_path)
     ocr_data_create(path_chinese_synthetic, path_img, path_font, path_have_yen_path, path_save, txt_save)
