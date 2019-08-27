@@ -511,8 +511,7 @@ class ChineseCrnnNet:
             summary_writer.add_summary(summary=train_summary, global_step=epoch)
 
             if epoch % show_epochs == 0 and epoch >= show_epochs:
-                logger.info('epoch {} training loss {}'.format(str(epoch), str(train_loss_value)))
-
+                logger.info('epoch {} training loss {}, lr {}'.format(str(epoch), str(train_loss_value), str(lr)))
 
             if epoch % save_epochs == 0 and epoch >= save_epochs:
                 model_name = 'chinese_crnn_{}.ckpt'.format(str(epoch))
