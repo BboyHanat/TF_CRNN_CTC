@@ -179,7 +179,7 @@ def ocr_data_thread(font_info):
         fnt = ImageFont.truetype(font, 32)
     except:
         return
-    batch_repeat = 10  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
+    batch_repeat = 38250  # if batch_size < shuffle_limmit else len(chinese_synth) // 2 // 5
     for repeat_times in range(batch_repeat):
         fnt1 = fnt
         logger.info("font name is {}, font index {}, batch size is {} step is {}".format(font.split("/")[-1], str(index), str(batch_size), str(repeat_times)))
@@ -195,7 +195,7 @@ def ocr_data_thread(font_info):
             except:
                 continue
         try:
-            if '^' in char_list:
+            if '¥' in char_list:
                 ttf = TTFont(font)
                 uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
                 rmb = u'yen'
