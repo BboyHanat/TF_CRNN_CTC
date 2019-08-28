@@ -143,7 +143,7 @@ def copy_have_yen_font(src_fonts_path, have_yen_path):
 
 ######################################################
 path_chinese_synthetic = "./chinese_synthetic.txt"
-path_img = '/data/User/lijianan/data/ocr_background_img'
+path_img = '/hanat/ocr_background_img'
 path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'     #'/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
 path_save = '/hanat/data2/image_data'
