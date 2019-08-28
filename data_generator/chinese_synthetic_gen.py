@@ -58,9 +58,9 @@ def get_fontcolor(image):
     s_mean = int(np.mean(image_hsv[:, :, 1]))
     v_mean = int(np.mean(image_hsv[:, :, 2]))
 
-    h_new = (random.randint(100, 155)+h_mean) % 255
-    s_new = (random.randint(30, 225)+s_mean) % 255
-    v_new = (random.randint(70, 185)+v_mean) % 255
+    h_new = (random.randint(110, 145) + h_mean) % 255
+    s_new = (random.randint(110, 145) + s_mean) % 255
+    v_new = (random.randint(110, 145) + v_mean) % 255
     hsv_rgb = np.asarray([[[h_new,s_new,v_new]]], np.uint8)
     rbg = cv2.cvtColor(hsv_rgb, cv2.COLOR_HSV2RGB_FULL)
     r = rbg[0, 0, 0]
@@ -146,8 +146,8 @@ path_chinese_synthetic = "./chinese_synthetic.txt"
 path_img = '/data/User/李佳楠/data/ocr_background_img'
 path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'     #'/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-path_save = '/hanat/data1/image_data'
-annotation_file = '/hanat/data1/data_'
+path_save = '/hanat/data2/image_data'
+annotation_file = '/hanat/data2/data_'
 font_size_range = (30, 100)
 process_num = 16
 
