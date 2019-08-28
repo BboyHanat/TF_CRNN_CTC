@@ -444,7 +444,7 @@ class ChineseCrnnNet:
         :return:
         """
         # define crnn network and optimizer
-        global_step = tf.Variable(0, dtype=tf.int32, name='g_step1', trainable=False)
+        global_step = tf.Variable(0, dtype=tf.int32, name='g_step', trainable=False)
         learning_rate = tf.train.exponential_decay(
             learning_rate=self.learning_rate,
             global_step=global_step,
