@@ -175,13 +175,9 @@ class ChineseCrnnNet:
             decay_steps=self.lr_decay_steps,
             decay_rate=self.lr_decay_rate,
             staircase=self.lr_staircase)
-        # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        # with tf.control_dependencies(update_ops):
-        #     optimizer = tf.train.MomentumOptimizer(
-        #         learning_rate=learning_rate, momentum=0.9).minimize(
-        #         loss=loss, global_step=global_step)
-        # optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss=loss, global_step=global_step)
-        optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(loss=loss, global_step=global_step)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(loss=loss, global_step=global_step)        # don't use adamoptimizer!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return optimizer, learning_rate
 
     def average_gradients(self, tower_grads):
@@ -220,7 +216,7 @@ class ChineseCrnnNet:
 
         return average_grads
 
-    def compute_accuracy(self, ground_truth, decode_sequence, display=False, mode='per_char'):
+    def compute_accuracy(self, ground_truth, decode_sequence, mode='per_char'):
         """
         Computes accuracy
         :param ground_truth:
@@ -229,49 +225,52 @@ class ChineseCrnnNet:
         :param mode: full_sequence or per char to compute accuracy
         :return: avg accuracy
         """
+        ground_truth = list(ground_truth)
+        ground_length = len(ground_truth)
         str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decode_sequence)
-        number_lists = list(number_lists)
-        if mode == 'per_char':
+        pred_length = number_lists.shape[0]
+        if mode == 'per_char':                          # per character
             accuracy = []
+            if ground_length == 0:
+                return 0
             for index, label in enumerate(ground_truth):
-                prediction = list(number_lists[index])
+                label = list(label)
                 total_count = len(label)
-                correct_count = 0
-                try:
+                if index < pred_length:
+                    prediction = list(number_lists[index, :])
+                    correct_count = 0
                     for i, tmp in enumerate(label):
-                        try:
+                        if i < len(prediction):
                             if tmp == prediction[i]:
                                 correct_count += 1
-                        except:
-                            continue
-                except IndexError:
-                    continue
-                finally:
-                    try:
+                    if total_count > 0:
                         accuracy.append(correct_count / total_count)
-                    except ZeroDivisionError:
-                        if len(prediction) == 0:
-                            accuracy.append(1)
-                        else:
-                            accuracy.append(0)
-            avg_accuracy = np.mean(np.array(accuracy).astype(np.float32), axis=0)
-        elif mode == 'full_sequence':
-            try:
-                correct_count = 0
-                for index, label in enumerate(ground_truth):
-                    prediction = list(number_lists[index])
+                    elif len(prediction) == 0:
+                        accuracy.append(1)
+                    else:
+                        accuracy.append(0)
+                elif total_count == 0:
+                    accuracy.append(1)
+                else:
+                    accuracy.append(0)
+            avg_accuracy = np.mean(np.array(accuracy).astype(np.float32))
+
+        elif mode == 'full_sequence':               # full_sequence
+            correct_count = 0
+            for index, label in enumerate(ground_truth):
+                if index < pred_length:
+                    prediction = list(number_lists[index, :])
+                    label = list(label)
                     if prediction == label:
                         correct_count += 1
-                avg_accuracy = correct_count / len(ground_truth)
-            except ZeroDivisionError:
-                if len(number_lists) == 0:
-                    avg_accuracy = 1
-                else:
-                    avg_accuracy = 0
+            if ground_length > 0:
+                avg_accuracy = correct_count / ground_length
+            elif pred_length == 0:
+                avg_accuracy = 1
+            else:
+                avg_accuracy = 0
         else:
             raise NotImplementedError('Other accuracy compute mode has not been implemented')
-        if display:
-            logger.info('Mean accuracy is {:5f}'.format(avg_accuracy))
         return avg_accuracy
 
     def load_pretrained_model(self):
@@ -332,7 +331,7 @@ class ChineseCrnnNet:
               model_save_dir='../ckpt/chinese_ocr'
               ):
         """
-        train network, and validation networrk every (val_step) step training
+        train network, and validation networrk every (val_step) steps on training
         :param train_input_data:
         :param train_label:
         :param val_input_data:
@@ -425,7 +424,7 @@ class ChineseCrnnNet:
                         tboard_save_dir='../tboard/crnn_chinese_ocr',
                         model_save_dir='../ckpt/chinese_ocr_multi'):
         """
-
+        multi gpu train, I don't want to write the multi gpu validation code, during training, I use another gpu to validation my train result.
         :param train_input_data:
         :param train_label:
         :param val_input_data:
@@ -444,7 +443,7 @@ class ChineseCrnnNet:
         :return:
         """
         # define crnn network and optimizer
-        global_step = tf.Variable(0, dtype=tf.int32, name='g_step_new_1', trainable=False)
+        global_step = tf.Variable(0, dtype=tf.int32, name='g_step_new_2', trainable=False)
         learning_rate = tf.train.exponential_decay(
             learning_rate=self.learning_rate,
             global_step=global_step,
@@ -469,7 +468,7 @@ class ChineseCrnnNet:
                     batchnorm_updates = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
                     train_summary_op_updates = tf.get_collection(tf.GraphKeys.SUMMARIES)
 
-        # load pretrained model if the path had been declared
+
 
         grads = self.average_gradients(grad_compute_list)
         avg_train_loss = tf.reduce_mean(loss_list)
@@ -493,6 +492,7 @@ class ChineseCrnnNet:
         saver = tf.train.Saver()
         epoch = 0
 
+        # load pretrained model if the path had been declared
         self.load_pretrained_model()
         while epoch < train_epochs:
             _, train_loss_value, lr, train_summary = self.sess.run(fetches=[train_op, avg_train_loss, learning_rate, train_merge_summary_op])
@@ -520,6 +520,16 @@ class ChineseCrnnNet:
                    batch_size,
                    val_times,
                    name):
+        """
+        validation
+        :param val_input_data:
+        :param val_label:
+        :param sql_len:
+        :param batch_size:
+        :param val_times:
+        :param name:
+        :return:
+        """
         inference_ret = self.inference(self.input_data, name=name, reuse=False)
         decode, log_prob = self.decode_sequence(inference_ret, sql_len, batch_size)
         # load pretrained model if the path had been declared
@@ -535,7 +545,7 @@ class ChineseCrnnNet:
             # print("decoded pred string list is :", str_lists[0])
             # gt_str_lists, gt_number_lists = self.feature_decoder.sparse_tensor_to_str(val_seq_labels)
             # print("decoded gt string list is :", gt_str_lists[0])
-            acc_per_char = self.compute_accuracy(val_seq_labels, decoded_train_predictions[0])
+            acc_per_char = self.compute_accuracy(val_seq_labels, decoded_train_predictions[0], mode='per_char')
             acc_full_sequence = self.compute_accuracy(val_seq_labels, decoded_train_predictions[0], mode='full_sequence')
             accuary_per_char_list.append(acc_per_char)
             accuary_full_sequence_list.append(acc_full_sequence)
