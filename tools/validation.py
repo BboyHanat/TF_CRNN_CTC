@@ -53,14 +53,14 @@ def validation_data(dataset_dir, weights_path):
     :param train_data_num:
     :return:
     """
-
-    sess = tf.Session()
+    sess_config = tf.ConfigProto(allow_soft_placement=True)
+    sess = tf.Session(config=sess_config)
     val_dataset = shadownet_data_feed_pipline.CrnnDataFeeder(
         dataset_dir=dataset_dir,
         flags='val'
     )
     val_images, val_labels, val_images_paths = val_dataset.inputs(
-        batch_size=CFG.TRAIN.BATCH_SIZE
+        batch_size=CFG.TRAIN.VAL_BATCH_SIZE
     )
     decoder = tf_io_pipline_fast_tools.FeatureDecoder(lexicon_path=os.path.join(dataset_dir + "lexicon.txt"))
     chinese_crnn = ChineseCrnnNet(hidden_nums=hidden_nums,

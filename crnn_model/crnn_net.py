@@ -228,6 +228,7 @@ class ChineseCrnnNet:
         ground_truth = list(ground_truth)
         ground_length = len(ground_truth)
         str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decode_sequence)
+        print(number_lists.shape)
         pred_length = number_lists.shape[0]
         if mode == 'per_char':                          # per character
             accuracy = []
