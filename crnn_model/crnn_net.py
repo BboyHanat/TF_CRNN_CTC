@@ -244,7 +244,7 @@ class ChineseCrnnNet:
                         print(len(prediction))
                         if i < len(prediction):
                             print(prediction[i].shape)
-                            if tmp == prediction[i]:
+                            if tmp[0] == prediction[i]:
                                 correct_count += 1
                     if total_count > 0:
                         accuracy.append(correct_count / total_count)
