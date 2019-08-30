@@ -38,9 +38,9 @@ def init_args():
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-d', '--dataset_dir', type=str, default='../data/',
+    parser.add_argument('-d', '--dataset_dir', type=str, default='/hanat/data2/',
                         help='Directory containing train_features.tfrecords')
-    parser.add_argument('-w', '--weights_path', type=str, default='../ckpt/chinese_ocr/chinese_crnn_1000.ckpt',
+    parser.add_argument('-w', '--weights_path', type=str, default='../ckpt/chinese_ocr/chinese_crnn_81360.ckpt',
                         help='Path to pre-trained weights to continue training')
     return parser.parse_args()
 
