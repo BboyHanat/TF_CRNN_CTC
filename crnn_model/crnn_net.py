@@ -225,13 +225,11 @@ class ChineseCrnnNet:
         :param mode: full_sequence or per char to compute accuracy
         :return: avg accuracy
         """
-        print("GGGGGGG",ground_truth)
-        ground_truth = list(ground_truth)
-        ground_length = len(ground_truth)
-        str_lists, number_lists = self.feature_decoder.sparse_tensor_to_str(decode_sequence)
-        print("NNNNNNNN",number_lists)
-        print(number_lists.shape)
-        pred_length = number_lists.shape[0]
+        gt_str_lists, gt_index_lists = self.feature_decoder.sparse_tensor_to_str(ground_truth)
+        pred_str_lists, pred_index_lists = self.feature_decoder.sparse_tensor_to_str(decode_sequence)
+        pred_length = pred_index_lists.shape[0]
+        ground_length = gt_index_lists.shape[0]
+        ground_truth = list(gt_index_lists)
         if mode == 'per_char':                          # per character
             accuracy = []
             if ground_length == 0:
@@ -240,12 +238,11 @@ class ChineseCrnnNet:
                 label = list(label)
                 total_count = len(label)
                 if index < pred_length:
-                    prediction = list(number_lists[index, :])
+                    prediction = list(pred_index_lists[index, :])
                     correct_count = 0
                     for i, tmp in enumerate(label):
                         print("test", tmp.shape)
                         if i < len(prediction):
-                            print(prediction[i].shape)
                             if tmp == prediction[i]:
                                 correct_count += 1
                     if total_count > 0:
@@ -264,7 +261,7 @@ class ChineseCrnnNet:
             correct_count = 0
             for index, label in enumerate(ground_truth):
                 if index < pred_length:
-                    prediction = list(number_lists[index, :])
+                    prediction = list(pred_index_lists[index, :])
                     label = list(label)
                     if prediction == label:
                         correct_count += 1
