@@ -241,10 +241,10 @@ class ChineseCrnnNet:
                     prediction = list(number_lists[index, :])
                     correct_count = 0
                     for i, tmp in enumerate(label):
-                        print(len(prediction))
+                        print("test", tmp.shape)
                         if i < len(prediction):
                             print(prediction[i].shape)
-                            if tmp[0] == prediction[i]:
+                            if tmp == prediction[i]:
                                 correct_count += 1
                     if total_count > 0:
                         accuracy.append(correct_count / total_count)
