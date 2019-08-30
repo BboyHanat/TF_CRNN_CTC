@@ -242,6 +242,7 @@ class ChineseCrnnNet:
                     correct_count = 0
                     for i, tmp in enumerate(label):
                         if i < len(prediction):
+                            print(prediction[i].shape)
                             if tmp == prediction[i]:
                                 correct_count += 1
                     if total_count > 0:
