@@ -351,7 +351,7 @@ class CrnnFeatureReader:
         # completely uniform shuffling, set the parameter to be the same as the
         # number of elements in the dataset.
         #if self._dataset_flag != 'test':
-        dataset = dataset.shuffle(buffer_size=500)
+        dataset = dataset.shuffle(buffer_size=5000)
         # repeat num epochs
         dataset = dataset.repeat()
 
