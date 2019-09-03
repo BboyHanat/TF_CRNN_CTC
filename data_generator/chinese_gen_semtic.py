@@ -338,13 +338,12 @@ def random_paste(image, font_bg, x1, y1, x2, y2):
 path_chinese_synthetic = "./sentence.txt"
 path_img = '/hanat/ocr_background_img'
 path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
-path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'     #'/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
+path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
 path_save = '/hanat/data3/image_data'
 annotation_file = '/hanat/data3/data_'
 font_size_range = (30, 100)
 process_num = 16
 batch_r = 14458
-
 
 # path_chinese_synthetic = "./sentence.txt"
 # path_img = '/Users/aidaihanati/TezignProject/PSD/替换素材(1)/images/background'
@@ -411,11 +410,12 @@ def ocr_data_thread(font_info):
             if os.path.exists(image_save):
                 if os.path.getsize(image_save) > 1:
                     char_list = ''.join(char_list)
-                    char_list = char_list.replace(' ','')
+                    char_list = char_list.replace(' ', '')
                     annotation_info = image_name + "^" + char_list + "\n"
                     fp_txt.write(annotation_info)
                 else:
                     os.remove(image_save)
+
         except:
             print("FUCK!!!!!!!", chinese_synth_list)
             continue
