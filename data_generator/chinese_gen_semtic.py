@@ -33,7 +33,7 @@ class CharacterGen:
         :param batch_size:
         """
         self.character_seq = character_seq
-        random.shuffle(self.character_seq)
+        #random.shuffle(self.character_seq)
         self.len_range = len_range
         self.get_next = self._get_next_batch()
         self.corpus_length = len(self.character_seq)
@@ -52,14 +52,14 @@ class CharacterGen:
         if random.randint(0, 6) >= 4 and 7 < len_seq < 13:
             character_seq.insert(random.randint(2, len_seq - 1), ' ')
 
-        len_seq = len(character_seq)
+        # len_seq = len(character_seq)
 
-        top = random.randint(0, 15 - len_seq)
-        bottom = 15 - len_seq - top
-        for i in range(top):
-            character_seq.insert(0, ' ')
-        for i in range(bottom):
-            character_seq.insert(len_seq - top, ' ')
+        # top = random.randint(0, 15 - len_seq)
+        # bottom = 15 - len_seq - top
+        # for i in range(top):
+        #     character_seq.insert(0, ' ')
+        # for i in range(bottom):
+        #     character_seq.insert(len_seq - top, ' ')
         return character_seq
 
     def _get_next_batch(self):
@@ -274,6 +274,23 @@ def get_font_image(font: str, char_list, font_size_range):
             bg = bg.rotate(angle, center=(w // 2, h // 2), expand=True, fillcolor=(0, 0, 0, 0))
         return bg
 
+    def random_add_board(draw, x, y, char_str, fnt):
+        b = random.randint(0, 2)
+        if b < 1:
+            draw.text((x - 2, y), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x + 2, y), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x, y - 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x, y + 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+
+            # thicker border
+            draw.text((x - 2, y - 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x + 2, y - 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x - 2, y + 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x + 2, y + 2), char_str, font=fnt, fill=(0, 0, 0, 255))
+            draw.text((x, y), char_str, font=fnt, fill=(255, 255, 255, 255))
+        else:
+            draw.text((x - 2, y - 2), char_str, fill=(255, 255, 255, 255), font=fnt)
+
     aspect_arr = ['h', 'h', 'h']
     a = random.randint(0, 2)
     aspect = aspect_arr[a]
@@ -295,10 +312,11 @@ def get_font_image(font: str, char_list, font_size_range):
         size = fnt.getsize(char_str)
     font_bg = Image.new("RGBA", (size[0], size[1]), color=(255, 255, 255, 0))
     draw = ImageDraw.Draw(font_bg)
-    if aspect == 'h':
-        draw.text((0, 0), char_str, fill=(255, 255, 255, 255), font=fnt)
-    else:
-        draw.multiline_text((0, 0), char_str, fill=(255, 255, 255, 255), spacing=spacing, font=fnt)
+    random_add_board(draw, 2, 2, char_str, fnt)
+    # if aspect == 'h':
+    # draw.text((0, 0), char_str, fill=(255, 255, 255, 255), font=fnt)
+    # else:
+    #     draw.multiline_text((0, 0), char_str, fill=(255, 255, 255, 255), spacing=spacing, font=fnt)
     font_bg = random_rotate(font_bg)
     return font_bg, aspect
 
@@ -333,27 +351,42 @@ def random_paste(image, font_bg, x1, y1, x2, y2):
     return image
 
 
+def image_normlization(image):
+    w, h = image.size
+    image = np.asarray(image)
+    image = cv2.resize(image, (int(w * (32 / h)), 32), cv2.INTER_CUBIC)
+    w, h = image.shape[1], image.shape[0]
+    if w < 456:
+        left = (456 - w) // 2
+        right = 456 - (left + w)
+        image = np.pad(image, ((0, 0), (left, right), (0, 0)), mode='constant', constant_values=0)
+    elif w > 456:
+        image = cv2.resize(image, (456, 32), cv2.INTER_CUBIC)
+    image = Image.fromarray(image)
+    return image
+
+
 ######################################################
 
-path_chinese_synthetic = "./sentence.txt"
-path_img = '/hanat/ocr_background_img'
-path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
-path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-path_save = '/hanat/data3/image_data'
-annotation_file = '/hanat/data3/data_'
-font_size_range = (30, 100)
-process_num = 16
-batch_r = 14458
-
 # path_chinese_synthetic = "./sentence.txt"
-# path_img = '/Users/aidaihanati/TezignProject/PSD/替换素材(1)/images/background'
-# path_font = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
-# path_have_yen_path = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
-# path_save = './hanat/train'
-# annotation_file = './hanat/data_'
+# path_img = '/hanat/ocr_background_img'
+# path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
+# path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
+# path_save = '/hanat/data3/image_data'
+# annotation_file = '/hanat/data3/data_'
 # font_size_range = (30, 100)
-# process_num = 4
-# batch_r = 10
+# process_num = 16
+# batch_r = 14458
+
+path_chinese_synthetic = "./sentence.txt"
+path_img = '/Users/aidaihanati/TezignProject/PSD/替换素材(1)/images/background'
+path_font = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
+path_have_yen_path = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
+path_save = './hanat/train'
+annotation_file = './hanat/data_'
+font_size_range = (30, 50)
+process_num = 4
+batch_r = 10
 
 os.makedirs(path_save, exist_ok=True)
 fp = open(path_chinese_synthetic, "r")
@@ -391,44 +424,50 @@ def ocr_data_thread(font_info):
             except:
                 print("afafafa")
                 continue
-        try:
-            if '¥' in char_list:
-                ttf = TTFont(font)
-                uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
-                rmb = u'yen'
-                if rmb not in uni_list:
-                    font_have_yen = random.randint(0, len(font_have_yen_path) - 1)
-                    font = font_have_yen_path[font_have_yen]
+        #try:
+        if '¥' in char_list:
+            ttf = TTFont(font)
+            uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+            rmb = u'yen'
+            if rmb not in uni_list:
+                font_have_yen = random.randint(0, len(font_have_yen_path) - 1)
+                font = font_have_yen_path[font_have_yen]
 
-            font_image, aspect = get_font_image(font, char_list, font_size_range)
-            size = font_image.size
-            bg_pil, x1, y1, x2, y2 = random_region(image, size[0], size[1])
-            bg_pil = random_paste(bg_pil, font_image, x1, y1, x2, y2)
-            image_name = str(index) + "_" + str(repeat_times) + ".jpg"
-            image_save = os.path.join(path_save, image_name)
-            bg_pil.save(image_save)
-            if os.path.exists(image_save):
-                if os.path.getsize(image_save) > 1:
-                    char_list = ''.join(char_list)
-                    char_list = char_list.replace(' ', '')
-                    annotation_info = image_name + "^" + char_list + "\n"
-                    fp_txt.write(annotation_info)
-                else:
-                    os.remove(image_save)
+        font_image, aspect = get_font_image(font, char_list, font_size_range)
+        size = font_image.size
+        bg_pil, x1, y1, x2, y2 = random_region(image, size[0], size[1])
+        bg_pil = random_paste(bg_pil, font_image, x1, y1, x2, y2)
+        bg_pil = image_normlization(bg_pil)
+        image_name = str(index) + "_" + str(repeat_times) + ".jpg"
+        image_save = os.path.join(path_save, image_name)
+        bg_pil.save(image_save)
+        if os.path.exists(image_save):
+            if os.path.getsize(image_save) > 1:
+                char_list = ''.join(char_list)
+                char_list = char_list.replace(' ', '')
+                annotation_info = image_name + "^" + char_list + "\n"
+                fp_txt.write(annotation_info)
+            else:
+                os.remove(image_save)
 
-        except:
-            print("FUCK!!!!!!!", chinese_synth_list)
-            continue
+        # except:
+        #     print("FUCK!!!!!!!", chinese_synth_list)
+        #     continue
     fp_txt.close()
 
 
-start = datetime.datetime.now()
-pool = Pool(process_num)
-print(len(font_path))
 for font_info in font_path:
-    pool.apply_async(ocr_data_thread, (font_info,))
-pool.close()
-pool.join()
+    ocr_data_thread(font_info)
 
-end = datetime.datetime.now()
-print(end - start)
+
+
+# start = datetime.datetime.now()
+# pool = Pool(process_num)
+# print(len(font_path))
+# for font_info in font_path:
+#     pool.apply_async(ocr_data_thread, (font_info,))
+# pool.close()
+# pool.join()
+#
+# end = datetime.datetime.now()
+# print(end - start)
