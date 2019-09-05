@@ -370,12 +370,12 @@ def image_normlization(image):
 
 path_chinese_synthetic = "./sentence.txt"
 path_img = '/hanat/ocr_background_img'
-path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
+path_font = '/data/User/hanat/TF_CRNN_CTC/data/new_fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
 path_save = '/hanat/data4/image_data'
 annotation_file = '/hanat/data4/data_'
 font_size_range = (30, 50)
-process_num = 32
+process_num = 24
 batch_r = 14458
 
 # path_chinese_synthetic = "./sentence.txt"
@@ -394,7 +394,7 @@ chinese_synth = fp.readlines()
 fp.close()
 
 img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
-font_path = [(index, os.path.join(path_font, font)) for index, font in enumerate(os.listdir(path_font)) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+font_path = [(index+84, os.path.join(path_font, font)) for index, font in enumerate(os.listdir(path_font)) if font.split(".")[-1] in font_format and ('.DS' not in font)]
 font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
 
 
