@@ -10,11 +10,11 @@ import os
 import random
 
 num_thread = 16
-data_file = [open("/hanat/data3/data_"+str(index)+'.txt', 'r') for index in range(num_thread)]
+data_file = [open("/hanat/data4/data_"+str(index)+'.txt', 'r') for index in range(num_thread)]
 
-train_fp = open("/hanat/data3/train.txt", 'w')
-val_fp = open("/hanat/data3/val.txt", 'w')
-test_fp = open("/hanat/data3/test.txt", 'w')
+train_fp = open("/hanat/data4/train.txt", 'w')
+val_fp = open("/hanat/data4/val.txt", 'w')
+test_fp = open("/hanat/data4/test.txt", 'w')
 
 val_num_interval = 9
 test_num_interval = 10
