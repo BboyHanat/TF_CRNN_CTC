@@ -374,8 +374,8 @@ path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
 path_save = '/hanat/data4/image_data'
 annotation_file = '/hanat/data4/data_'
-font_size_range = (30, 100)
-process_num = 16
+font_size_range = (30, 50)
+process_num = 32
 batch_r = 14458
 
 # path_chinese_synthetic = "./sentence.txt"
@@ -456,18 +456,18 @@ def ocr_data_thread(font_info):
     fp_txt.close()
 
 
-for font_info in font_path:
-    ocr_data_thread(font_info)
-
-
-
-# start = datetime.datetime.now()
-# pool = Pool(process_num)
-# print(len(font_path))
 # for font_info in font_path:
-#     pool.apply_async(ocr_data_thread, (font_info,))
-# pool.close()
-# pool.join()
-#
-# end = datetime.datetime.now()
-# print(end - start)
+#     ocr_data_thread(font_info)
+
+
+
+start = datetime.datetime.now()
+pool = Pool(process_num)
+print(len(font_path))
+for font_info in font_path:
+    pool.apply_async(ocr_data_thread, (font_info,))
+pool.close()
+pool.join()
+
+end = datetime.datetime.now()
+print(end - start)

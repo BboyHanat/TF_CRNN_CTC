@@ -15,10 +15,10 @@ __C.ARCH.HIDDEN_UNITS = 256
 __C.ARCH.HIDDEN_LAYERS = 2
 # Sequence length.  This has to be the width of the final feature map of the CNN, which is input size width / 4
 # __C.ARCH.SEQ_LENGTH = 70  # cn dataset
-__C.ARCH.SEQ_LENGTH = 80  # synth90k dataset
+__C.ARCH.SEQ_LENGTH = 114  # synth90k dataset
 # Width x height into which training / testing images are resized before feeding into the network
 # __C.ARCH.INPUT_SIZE = (280, 32)  # cn dataset
-__C.ARCH.INPUT_SIZE = (320, 32)  # synth90k dataset
+__C.ARCH.INPUT_SIZE = (456, 32)  # synth90k dataset
 # Number of channels in images
 __C.ARCH.INPUT_CHANNELS = 3
 # Number character classes
@@ -45,7 +45,7 @@ __C.TRAIN.TEST_DISPLAY_STEP = 100
 # Set the momentum parameter of the optimizer
 __C.TRAIN.MOMENTUM = 0.9
 # Set the initial learning rate
-__C.TRAIN.LEARNING_RATE = 0.1
+__C.TRAIN.LEARNING_RATE = 0.5
 # Set the GPU resource used during training process
 __C.TRAIN.GPU_MEMORY_FRACTION = 0.9
 # Set the GPU allow growth parameter during tensorflow training process
