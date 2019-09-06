@@ -406,7 +406,7 @@ def image_normlization(image):
 
 path_chinese_synthetic = "./sentence.txt"
 path_img = '/hanat/ocr_background_img'
-path_font = '/data/User/hanat/TF_CRNN_CTC/data/new_fonts'
+path_font = '/data/User/hanat/TF_CRNN_CTC/data/fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
 path_save = '/hanat/data5/image_data'
 annotation_file = '/hanat/data5/data_'
