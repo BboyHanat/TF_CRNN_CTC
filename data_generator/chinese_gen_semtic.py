@@ -460,40 +460,40 @@ def ocr_data_thread(font_info):
             except:
                 print("afafafa")
                 continue
-        #try:
-        if '¥' in char_list:
-            ttf = TTFont(font)
-            uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
-            rmb = u'yen'
-            if rmb not in uni_list:
-                font_have_yen = random.randint(0, len(font_have_yen_path) - 1)
-                font = font_have_yen_path[font_have_yen]
+        try:
+            if '¥' in char_list:
+                ttf = TTFont(font)
+                uni_list = ttf['cmap'].tables[0].ttFont.getGlyphOrder()
+                rmb = u'yen'
+                if rmb not in uni_list:
+                    font_have_yen = random.randint(0, len(font_have_yen_path) - 1)
+                    font = font_have_yen_path[font_have_yen]
 
-        font_image, aspect = get_font_image(font, char_list, font_size_range)
-        size = font_image.size
-        bg_pil, x1, y1, x2, y2 = random_region(image, size[0], size[1])
-        bg_pil = random_paste(bg_pil, font_image, x1, y1, x2, y2)
-        bg_pil = image_normlization(bg_pil)
-        image_name = str(index) + "_" + str(repeat_times) + ".jpg"
-        image_save = os.path.join(path_save, image_name)
-        bg_pil.save(image_save)
-        if os.path.exists(image_save):
-            if os.path.getsize(image_save) > 1:
-                char_list = ''.join(char_list)
-                char_list = char_list.replace(' ', '')
-                annotation_info = image_name + "^" + char_list + "\n"
-                fp_txt.write(annotation_info)
-            else:
-                os.remove(image_save)
+            font_image, aspect = get_font_image(font, char_list, font_size_range)
+            size = font_image.size
+            bg_pil, x1, y1, x2, y2 = random_region(image, size[0], size[1])
+            bg_pil = random_paste(bg_pil, font_image, x1, y1, x2, y2)
+            bg_pil = image_normlization(bg_pil)
+            image_name = str(index) + "_" + str(repeat_times) + ".jpg"
+            image_save = os.path.join(path_save, image_name)
+            bg_pil.save(image_save)
+            if os.path.exists(image_save):
+                if os.path.getsize(image_save) > 1:
+                    char_list = ''.join(char_list)
+                    char_list = char_list.replace(' ', '')
+                    annotation_info = image_name + "^" + char_list + "\n"
+                    fp_txt.write(annotation_info)
+                else:
+                    os.remove(image_save)
 
-        # except:
-        #     print("FUCK!!!!!!!", chinese_synth_list)
-        #     continue
+        except:
+            print("FUCK!!!!!!!", chinese_synth_list)
+            continue
     fp_txt.close()
 
 
-for font_info in font_path:
-    ocr_data_thread(font_info)
+# for font_info in font_path:
+#     ocr_data_thread(font_info)
 
 
 
