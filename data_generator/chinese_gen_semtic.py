@@ -430,7 +430,7 @@ chinese_synth = fp.readline()
 fp.close()
 
 img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
-font_path = [(index+84, os.path.join(path_font, font)) for index, font in enumerate(os.listdir(path_font)) if font.split(".")[-1] in font_format and ('.DS' not in font)]
+font_path = [(index, os.path.join(path_font, font)) for index, font in enumerate(os.listdir(path_font)) if font.split(".")[-1] in font_format and ('.DS' not in font)]
 font_have_yen_path = [os.path.join(path_have_yen_path, font) for font in os.listdir(path_have_yen_path) if font.split(".")[-1] in font_format and ('.DS' not in font)]
 
 
