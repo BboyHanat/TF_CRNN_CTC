@@ -25,54 +25,90 @@ img_format = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG']
 font_format = ["ttf", 'eot', 'fon', 'font', 'woff', 'woff2', 'otf', 'ttc', 'TTF', 'TTC', 'OTF', 'EOT', 'FONT', 'FON', 'WOFF', 'WOFF2']
 
 
+# class CharacterGen:
+#     def __init__(self, character_seq, len_range=(2, 15)):
+#         """
+#
+#         :param character_seq:
+#         :param batch_size:
+#         """
+#         self.character_seq = character_seq
+#         # random.shuffle(self.character_seq)
+#         self.len_range = len_range
+#         self.get_next = self._get_next_batch()
+#         self.corpus_length = len(self.character_seq)
+#
+#     @staticmethod
+#     def random_add_blank(character_seq):
+#         character_seq = character_seq.replace('\0x00', '')
+#         character_seq = character_seq.replace('\n', '')
+#         character_seq = character_seq.replace('\r', '')
+#         character_seq = character_seq.replace('\t', '')
+#         character_seq = character_seq.replace(' ', '')
+#         character_seq = list(character_seq)
+#         len_seq = len(character_seq)
+#         if len_seq < 2:
+#             return None
+#         if random.randint(0, 6) >= 4 and 7 < len_seq < 13:
+#             character_seq.insert(random.randint(2, len_seq - 1), ' ')
+#
+#         # len_seq = len(character_seq)
+#
+#         # top = random.randint(0, 15 - len_seq)
+#         # bottom = 15 - len_seq - top
+#         # for i in range(top):
+#         #     character_seq.insert(0, ' ')
+#         # for i in range(bottom):
+#         #     character_seq.insert(len_seq - top, ' ')
+#         return character_seq
+#
+#     def _get_next_batch(self):
+#         """
+#
+#         :return:
+#         """
+#         while True:
+#             seek = random.randint(0, self.corpus_length - 1)
+#             char_seq = self.random_add_blank(self.character_seq[seek])
+#             if char_seq == None:
+#                 continue
+#             yield char_seq
+
+
 class CharacterGen:
-    def __init__(self, character_seq, len_range=(2, 15)):
+    def __init__(self, character_seq):
         """
 
         :param character_seq:
         :param batch_size:
         """
         self.character_seq = character_seq
-        #random.shuffle(self.character_seq)
-        self.len_range = len_range
-        self.get_next = self._get_next_batch()
-        self.corpus_length = len(self.character_seq)
+        random.shuffle(self.character_seq)
+        self.get_next = self.get_next_batch()
 
-    @staticmethod
-    def random_add_blank(character_seq):
-        character_seq = character_seq.replace('\0x00', '')
-        character_seq = character_seq.replace('\n', '')
-        character_seq = character_seq.replace('\r', '')
-        character_seq = character_seq.replace('\t', '')
-        character_seq = character_seq.replace(' ', '')
-        character_seq = list(character_seq)
-        len_seq = len(character_seq)
-        if len_seq < 2:
-            return None
-        if random.randint(0, 6) >= 4 and 7 < len_seq < 13:
-            character_seq.insert(random.randint(2, len_seq - 1), ' ')
-
-        # len_seq = len(character_seq)
-
-        # top = random.randint(0, 15 - len_seq)
-        # bottom = 15 - len_seq - top
-        # for i in range(top):
-        #     character_seq.insert(0, ' ')
-        # for i in range(bottom):
-        #     character_seq.insert(len_seq - top, ' ')
-        return character_seq
-
-    def _get_next_batch(self):
+    def get_next_batch(self):
         """
 
         :return:
         """
+        seek = 0
         while True:
-            seek = random.randint(0, self.corpus_length - 1)
-            char_seq = self.random_add_blank(self.character_seq[seek])
-            if char_seq == None:
-                continue
-            yield char_seq
+            batch_size = random.randint(8, 15)
+            if len(self.character_seq) - seek < batch_size:
+                for i in range(len(self.character_seq) - seek):
+                    self.character_seq.insert(0, self.character_seq[-1])
+                    del self.character_seq[-1]
+                random.shuffle(self.character_seq)
+                seek = 0
+            ret_character_seq = self.character_seq[seek:seek + batch_size]
+            len_seq = len(ret_character_seq)
+            if random.randint(0, 6) >= 4 and 7 < len_seq < 13:
+                ret_character_seq.insert(random.randint(2, len_seq - 1), ' ')
+
+            yield ''.join(ret_character_seq)
+            seek += batch_size
+
+
 
 
 class ImageGen:
@@ -372,13 +408,13 @@ path_chinese_synthetic = "./sentence.txt"
 path_img = '/hanat/ocr_background_img'
 path_font = '/data/User/hanat/TF_CRNN_CTC/data/new_fonts'
 path_have_yen_path = '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'  # '/data/User/hanat/TF_CRNN_CTC/data/have_yen_fonts'
-path_save = '/hanat/data4/image_data'
-annotation_file = '/hanat/data4/data_'
+path_save = '/hanat/data5/image_data'
+annotation_file = '/hanat/data5/data_'
 font_size_range = (30, 50)
 process_num = 24
-batch_r = 14458
+batch_r = 38250 // 2
 
-# path_chinese_synthetic = "./sentence.txt"
+# path_chinese_synthetic = "./chinese_synthetic.txt"
 # path_img = '/Users/aidaihanati/TezignProject/PSD/替换素材(1)/images/background'
 # path_font = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
 # path_have_yen_path = '/Users/aidaihanati/TezignProject/TF_CRNN_CTC/data/fonts'
@@ -390,7 +426,7 @@ batch_r = 14458
 
 os.makedirs(path_save, exist_ok=True)
 fp = open(path_chinese_synthetic, "r")
-chinese_synth = fp.readlines()
+chinese_synth = fp.readline()
 fp.close()
 
 img_path = [os.path.join(path_img, img) for img in os.listdir(path_img) if img.split(".")[-1] in img_format and ('.DS' not in img)]
@@ -456,8 +492,8 @@ def ocr_data_thread(font_info):
     fp_txt.close()
 
 
-# for font_info in font_path:
-#     ocr_data_thread(font_info)
+for font_info in font_path:
+    ocr_data_thread(font_info)
 
 
 
