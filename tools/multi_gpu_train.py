@@ -40,11 +40,11 @@ def init_args():
 
     parser.add_argument('-d', '--dataset_dir', type=str, default='/hanat/data4/',
                         help='Directory containing train_features.tfrecords')
-    parser.add_argument('-w', '--weights_path', type=str, default='../ckpt/chinese_ocr_multi/chinese_crnn_108480.ckpt',
+    parser.add_argument('-w', '--weights_path', type=str, default='../ckpt/chinese_ocr_multi/chinese_crnn_101700.ckpt',
                         help='Path to pre-trained weights to continue training')
     parser.add_argument('-tm', '--train_data_num', type=int, default=3471510,
                         help='Path to pre-trained weights to continue training')
-    parser.add_argument('-g', '--gpu_num', type=int, default=4,
+    parser.add_argument('-g', '--gpu_num', type=int, default=3,
                         help='Path to pre-trained weights to continue training')
 
     return parser.parse_args()
