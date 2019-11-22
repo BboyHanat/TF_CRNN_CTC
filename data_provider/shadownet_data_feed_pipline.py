@@ -44,7 +44,7 @@ class CrnnDataProducer(object):
         # Check image source data
         self._dataset_dir = dataset_dir
         self._train_annotation_file_path = ops.join(dataset_dir, 'train.txt')
-        self._test_annotation_file_path = ops.join(dataset_dir, 'test.txt')
+        # self._test_annotation_file_path = ops.join(dataset_dir, 'test.txt')
         self._val_annotation_file_path = ops.join(dataset_dir, 'val.txt')
         self._lexicon_file_path = ops.join(dataset_dir, 'lexicon.txt')
         self._writer_process_nums = writer_process_nums
@@ -100,20 +100,20 @@ class CrnnDataProducer(object):
 
         log.info('Generate validation sample tfrecords complete, cost time: {:.5f}'.format(time.time() - t_start))
 
-        # generate test example tfrecords
-        log.info('Generating testing sample tfrecords....')
-        t_start = time.time()
-        print(self._test_sample_infos[1])
-        tfrecords_writer = tf_io_pipline_fast_tools.CrnnFeatureWriter(
-            annotation_infos=self._test_sample_infos,
-            lexicon_infos=self._lexicon_list,
-            tfrecords_save_dir=save_dir,
-            writer_process_nums=self._writer_process_nums,
-            dataset_flag='test'
-        )
-        tfrecords_writer.run()
-
-        log.info('Generate testing sample tfrecords complete, cost time: {:.5f}'.format(time.time() - t_start))
+        # # generate test example tfrecords
+        # log.info('Generating testing sample tfrecords....')
+        # t_start = time.time()
+        # print(self._test_sample_infos[1])
+        # tfrecords_writer = tf_io_pipline_fast_tools.CrnnFeatureWriter(
+        #     annotation_infos=self._test_sample_infos,
+        #     lexicon_infos=self._lexicon_list,
+        #     tfrecords_save_dir=save_dir,
+        #     writer_process_nums=self._writer_process_nums,
+        #     dataset_flag='test'
+        # )
+        # tfrecords_writer.run()
+        #
+        # log.info('Generate testing sample tfrecords complete, cost time: {:.5f}'.format(time.time() - t_start))
 
         return
 
@@ -124,7 +124,7 @@ class CrnnDataProducer(object):
         """
         return \
             ops.exists(self._train_annotation_file_path) and ops.exists(self._val_annotation_file_path) \
-            and ops.exists(self._test_annotation_file_path) and ops.exists(self._lexicon_file_path)
+            and  ops.exists(self._lexicon_file_path)
 
     def label2index(self, label):
         """
@@ -178,19 +178,19 @@ class CrnnDataProducer(object):
 
                 self._val_sample_infos.append((image_path, label_index))
 
-        # establish test example info
-        log.info('Start initialize testing sample information list...')
-        num_lines = sum(1 for _ in open(self._test_annotation_file_path, 'r'))
-        with open(self._test_annotation_file_path, 'r', encoding='utf-8') as file:
-            for line in tqdm.tqdm(file, total=num_lines):
-                image_name, label_index = line.rstrip('\r').rstrip('\n').split('^')
-                label_index = self.label2index(label_index)
-                image_path = ops.join(self._dataset_dir, "image_data", image_name)
-
-                if not ops.exists(image_path):
-                    raise ValueError('Example image {:s} not exist'.format(image_path))
-
-                self._test_sample_infos.append((image_path, label_index))
+        # # establish test example info
+        # log.info('Start initialize testing sample information list...')
+        # num_lines = sum(1 for _ in open(self._test_annotation_file_path, 'r'))
+        # with open(self._test_annotation_file_path, 'r', encoding='utf-8') as file:
+        #     for line in tqdm.tqdm(file, total=num_lines):
+        #         image_name, label_index = line.rstrip('\r').rstrip('\n').split('^')
+        #         label_index = self.label2index(label_index)
+        #         image_path = ops.join(self._dataset_dir, "image_data", image_name)
+        #
+        #         if not ops.exists(image_path):
+        #             raise ValueError('Example image {:s} not exist'.format(image_path))
+        #
+        #         self._test_sample_infos.append((image_path, label_index))
 
 
 class CrnnDataFeeder(object):
