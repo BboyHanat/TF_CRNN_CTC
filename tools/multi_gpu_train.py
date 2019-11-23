@@ -44,7 +44,7 @@ def init_args():
                         help='Path to pre-trained weights to continue training')
     parser.add_argument('-tm', '--train_data_num', type=int, default=1856529,
                         help='Path to pre-trained weights to continue training')
-    parser.add_argument('-g', '--gpu_num', type=int, default=3,
+    parser.add_argument('-g', '--gpu_num', type=int, default=4,
                         help='Path to pre-trained weights to continue training')
 
     return parser.parse_args()
